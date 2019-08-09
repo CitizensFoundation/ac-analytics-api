@@ -3,6 +3,7 @@ import warnings
 import nltk
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import os
+nltk.download('punkt')
 
 class TrainWord2Vec:
   def __init__(self, filename_prefix, text, vec_min_count=3, vec_size=100, vec_window=5, vec_workers=8):
@@ -33,3 +34,4 @@ class TrainWord2Vec:
     filename = "w2v_models/"+self.filename_prefix+'_w2v.model'
     model1.save(filename)
     print(f"Model ready: {filename}")
+
