@@ -1,5 +1,5 @@
 from elasticsearch import Elasticsearch
-from train_w2v import TrainWord2Vec
+from train_d2v import TrainDoc2Vec
 from training_prefix import makeTrainingPrefix
 import os
 
@@ -40,17 +40,25 @@ class Trainer:
 
   def getAllPostTextFromES(self):
     items = self.getAllItemsFromES()
-    itemText = ""
+    outItemTexts = []
+    outItemIds = []
     for item in items['hits']['hits']:
+      itemText = ""
       if item["_source"]["name"]:
         itemText+=item["_source"]["name"]+" "
       itemText+=item["_source"]["description"]+"\n"
-    print(itemText)
-    return itemText
+      outItemTexts.append(itemText)
+      outItemIds.append(item["_id"])
+    print(outItemTexts)
+    print(outItemIds)
+    return [outItemTexts, outItemIds]
 
   def start(self):
-    w2v = TrainWord2Vec(self.filename_prefix, self.getAllPostTextFromES())
-    w2v.train()
+    texts, ids = self.getAllPostTextFromES()
+    print(texts)
+    print(ids)
+    d2v = TrainDoc2Vec(self.filename_prefix, texts, ids)
+    d2v.train()
     print("Training done for: "+self.filename_prefix)
 
 def triggerPostTraining(type, object):
