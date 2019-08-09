@@ -1,6 +1,6 @@
 from elasticsearch import Elasticsearch
-from train_d2v import TrainDoc2Vec
-from training_prefix import makeTrainingPrefix
+from training.train_d2v import TrainDoc2Vec
+from training.training_prefix import makeTrainingPrefix
 import os
 
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
@@ -44,9 +44,13 @@ class Trainer:
     outItemIds = []
     for item in items['hits']['hits']:
       itemText = ""
-      if item["_source"]["name"]:
-        itemText+=item["_source"]["name"]+" "
-      itemText+=item["_source"]["description"]+"\n"
+      if (item["_source"].get("lemmatizedContent")):
+        itemText+=item["_source"].get("lemmatizedContent")
+        print("SCORE")
+      else:
+        if item["_source"]["name"]:
+          itemText+=item["_source"]["name"]+" "
+        itemText+=item["_source"]["description"]+"\n"
       outItemTexts.append(itemText)
       outItemIds.append(item["_id"])
     print(outItemTexts)

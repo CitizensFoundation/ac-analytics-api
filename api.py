@@ -12,8 +12,10 @@ from rq.job import Job
 
 from elasticsearch import Elasticsearch
 
-from training import triggerPostTraining, triggerPointTraining, triggerArticleTraining
+from training.training import triggerPostTraining, triggerPointTraining, triggerArticleTraining
 from worker import conn
+from lemmatizer.lemmatizer import getLemmatizedText
+
 if os.environ.get('AC_SIM_API_URL'):
     api_url = os.environ['AC_SIM_API_URL']
 else:
@@ -92,6 +94,8 @@ class PostList(Resource):
         rawPost = parser.parse_args()
         print(rawPost)
         esPost = convertToNumbersWhereNeeded(rawPost)
+        esPost["lemmatizedContent"]=getLemmatizedText(esPost["description"], esPost.get("language"))
+        print(esPost)
         es.update(index='posts',doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
         if PostList.triggerPostDomainQueueTimer.get(rawPost.domain_id)==None:
             PostList.triggerPostDomainQueueTimer[rawPost.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPostTriggerQueue, [rawPost.domain_id, None, None])
@@ -145,6 +149,7 @@ class PointList(Resource):
         rawPoint = parser.parse_args()
         print(rawPoint)
         esPoint = convertToNumbersWhereNeeded(rawPoint)
+        esPoint["lemmatizedContent"]=getLemmatizedText(esPoint["content"], esPoint.get("language"))
         es.update(index='points',doc_type='point',id=point_id,body={'doc':esPoint,'doc_as_upsert':True})
         if PointList.triggerPointDomainQueueTimer.get(rawPoint.domain_id)==None:
             PointList.triggerPointDomainQueueTimer[rawPoint.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPointTriggerQueue, [rawPoint.domain_id, None, None])
@@ -175,6 +180,8 @@ class ArticleList(Resource):
         rawArticle = parser.parse_args()
         print(rawArticle)
         esArticle = convertToNumbersWhereNeeded(rawArticle)
+        esArticle["lemmatizedContent"]=getLemmatizedText(esArticle["content"], esArticle.get("language"))
+
         es.update(index='articles',doc_type='article',id=article_id,body={'doc':esArticle,'doc_as_upsert':True})
         if ArticleList.triggerArticleQueueTimer==None:
             ArticleList.triggerArticleDomainQueueTimer = Timer(ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC, self.addToArticleTriggerQueue)
