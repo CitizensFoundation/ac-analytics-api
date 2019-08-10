@@ -4,8 +4,8 @@ import sys
 
 from threading import Timer
 
-from flask import Flask
-from flask_restful import reqparse, Resource, Api
+from flask import Flask, jsonify
+from flask_restful import request, reqparse, Resource, Api
 from flask_cors import CORS
 
 from rq import Queue
@@ -17,12 +17,14 @@ from training.training import triggerPostTraining, triggerPointTraining, trigger
 from worker import conn
 from lemmatizer.lemmatizer import getLemmatizedText
 
-if os.environ.get('AC_SIM_API_URL'):
-    api_url = os.environ['AC_SIM_API_URL']
+if os.environ.get('AC_SIMIL_API_URL'):
+    api_url = os.environ['AC_SIMIL_API_URL']
 else:
     api_url = '/api/v1'
 
-es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
+es_url = os.environ['AC_SIMIL_ES_URL'] if os.environ.get('AC_SIMIL_ES_URL')!=None else 'localhost:9200'
+
+master_api_key = os.environ['AC_SIMIL_MASTER_API_KEY']
 
 #DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=24*60*60
 #COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=1*60*60
@@ -56,6 +58,13 @@ def convertToNumbersWhereNeeded(inDict):
         else:
             outDict[name]=value
     return outDict
+
+@app.before_request
+def before_request():
+    headers = request.headers
+    auth = headers.get("X-Api-Key")
+    if (auth!=master_api_key):
+        return jsonify({"message": "ERROR: Unauthorized"}), 401
 
 class DomainList(Resource):
     def post(self, domain_id):
