@@ -16,6 +16,7 @@ from elasticsearch import Elasticsearch
 from training.training import triggerPostTraining, triggerPointTraining, triggerArticleTraining
 from worker import conn
 from lemmatizer.lemmatizer import getLemmatizedText
+from simiarities.similarities import getSimilarContentPost
 
 if os.environ.get('AC_SIMILARITY_API_URL'):
     api_url = os.environ['AC_SIMILARITY_API_URL']
@@ -243,6 +244,23 @@ class ArticleList(Resource):
 
         return json.dumps({"ok": True})
 
+class FindSimilarPosts(Resource):
+    def post(self):
+        print("Call for: POST /find_similar")
+        parser.add_argument('content')
+        parser.add_argument('language')
+        parser.add_argument('domain_id')
+        parser.add_argument('community_id')
+        parser.add_argument('group_id')
+        rawFind = parser.parse_args()
+        print(rawFind)
+        esFind = convertToNumbersWhereNeeded(rawFind)
+        language = esFind.get("language")
+        lemmatizedContent=getLemmatizedText(esFind["content"],language)
+        similar_content = getSimilarContentPost(lemmatizedContent, language, rawFind)
+
+        return json.dumps(similar_content)
+
 if (len(sys.argv)>1):
     if (sys.argv[1]=="deleteAllIndexesES"):
         if es.indices.exists("posts"):
@@ -259,6 +277,8 @@ if (len(sys.argv)>1):
            es.indices.delete("groups")
         if es.indices.exists("policyGames"):
            es.indices.delete("policyGames")
+        if es.indices.exists("similarityweights"):
+           es.indices.delete("similarityweights")
         print("HAVE DELETED ALL ES INDICES")
 
 api.add_resource(PostList, api_url+'/posts/<post_id>')
@@ -268,5 +288,5 @@ api.add_resource(DomainList, api_url+'/domains/<domain_id>')
 api.add_resource(CommunityList, api_url+'/communities/<community_id>')
 api.add_resource(GroupList, api_url+'/groups/<group_id>')
 api.add_resource(PolicyGameList, api_url+'/policy_games/<policy_game_id>')
+api.add_resource(FindSimilarPosts, api_url+'/find_similar_posts')
 app.run()
-
