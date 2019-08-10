@@ -1,4 +1,21 @@
+# Copyright (C) 2019 Íbúar ses / Citizens Foundation Iceland / Citizens Foundation America
+# Authors Atli Jasonarson & Robert Bjarnason
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import os
+
 import json
 import sys
 
@@ -35,8 +52,8 @@ MIN_CHARACTER_LENGTH_FOR_PROCESSING=150
 #ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=15*60
 
 DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=60*45
-COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=60*20
-GROUP_TRIGGER_DEBOUNCE_TIME_SEC=10
+COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=60*15
+GROUP_TRIGGER_DEBOUNCE_TIME_SEC=9*60
 ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=60
 
 app = Flask(__name__)
