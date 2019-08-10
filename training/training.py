@@ -6,7 +6,7 @@ def triggerPostTraining(type, object):
   print(object)
   trainer = TrainingManager("posts","post",object)
   trainer.start()
-  weights = CreateWeights("posts","post",object)
+  weights = CreateWeights("posts","post",object,trainer.model)
   weights.start()
 
 def triggerPointTraining(type, object):
@@ -14,7 +14,7 @@ def triggerPointTraining(type, object):
   print(object)
   trainer = TrainingManager("points","post",object)
   trainer.start()
-  weights = CreateWeights("points","post",object)
+  weights = CreateWeights("points","post",object,trainer.model)
   weights.start()
 
 def triggerArticleTraining(type, object):
@@ -22,5 +22,5 @@ def triggerArticleTraining(type, object):
   print(object)
   trainer = TrainingManager("articles","article",object)
   trainer.start()
-  weights = CreateWeights("articles","article",object)
+  weights = CreateWeights("articles","article",object,trainer.model)
   weights.start()

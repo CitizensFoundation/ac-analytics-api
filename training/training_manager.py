@@ -47,35 +47,36 @@ class TrainingManager:
         }
     }
 
-    print("TERMS")
-    print(body)
-    print(self.docType)
+    #print("TERMS")
+    #print(body)
+    #print(self.docType)
 
     #TODO add a scroll here to be able to process more than 10.000
     return es.search(index=self.indexName, body=body, size=10*1000)
 
   def getAllTextFromES(self):
     items = self.getAllItemsFromES()
-    print(items['hits']['hits'])
+    #print(items['hits']['hits'])
     outItemTexts = []
     outItemIds = []
     for item in items['hits']['hits']:
       itemText = ""
       if (item["_source"].get("lemmatizedContent")):
         itemText+=item["_source"].get("lemmatizedContent")
-        print("SCORE: "+item["_source"].get("lemmatizedContent"))
+        #print("SCORE: "+item["_source"].get("lemmatizedContent"))
       else:
         print("ERROR: did not find lemmatized text for item")
       outItemTexts.append(itemText)
-      outItemIds.append(int(item["_id"]))
-    print(outItemTexts)
-    print(outItemIds)
+      outItemIds.append(str(item["_id"]))
+    #print(outItemTexts)
+    #print(outItemIds)
     return [outItemTexts, outItemIds]
 
   def start(self):
     texts, ids = self.getAllTextFromES()
-    print(texts)
-    print(ids)
+    #print(texts)
+    #print(ids)
     d2v = TrainDoc2Vec(self.filename_prefix, texts, ids)
     d2v.train()
+    self.model = d2v.model
     print("Training done for: "+self.filename_prefix)

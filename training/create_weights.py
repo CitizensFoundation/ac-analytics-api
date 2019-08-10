@@ -8,7 +8,7 @@ es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None el
 es = Elasticsearch(es_url)
 
 class CreateWeights:
-  def __init__(self, indexName, docType, object):
+  def __init__(self, indexName, docType, object, model):
     self.indexName = indexName
     self.docType = docType
     self.object = object
@@ -39,7 +39,7 @@ class CreateWeights:
     self.weightIndexType = "weights_"+makeTrainingPrefix(self.language, indexName, object)
     self.modelFilePrefix = makeTrainingPrefix(self.language, indexName, object)
     filename = "d2v_models/"+self.modelFilePrefix+'_d2v.model'
-    self.model = Doc2Vec.load(filename)
+    self.model = model
 
   def getAllItemsFromES(self):
     body = {
@@ -61,20 +61,17 @@ class CreateWeights:
 
   def getAllTextFromES(self):
     items = self.getAllItemsFromES()
-    print(items['hits']['hits'])
+    #print(items['hits']['hits'])
     outItemTexts = []
     outItemIds = []
     for item in items['hits']['hits']:
       itemText = ""
       if (item["_source"].get("lemmatizedContent")):
         itemText+=item["_source"].get("lemmatizedContent")
-        print("LEMMATIZED: "+item["_source"].get("lemmatizedContent"))
       else:
         print("ERROR: did not find lemmatized text for item")
       outItemTexts.append(itemText)
       outItemIds.append(int(item["_id"]))
-    print(outItemTexts)
-    print(outItemIds)
     return [outItemTexts, outItemIds]
 
   def deleteWeightsFromES(self):
@@ -94,9 +91,9 @@ class CreateWeights:
       print(res)
 
   def processSimilarity(self, textId, text):
-    print("MOST SIMILAR FOR: "+textId)
+    print("MOST SIMILAR FOR: "+str(textId))
     print("TEXT TO CHECK: "+text)
-    most_similar = self.model.docvecs.most_similar([text], topn = 5)
+    most_similar = self.model.docvecs.most_similar([str(textId)], topn = 5)
     print(most_similar)
 
   def start(self):
