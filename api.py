@@ -246,7 +246,7 @@ if (len(sys.argv)>1):
            es.indices.delete("groups")
         if es.indices.exists("policyGames"):
            es.indices.delete("policyGames")
-        print("HAVE DELETED ALL INDICES")
+        print("HAVE DELETED ALL ES INDICES")
 
 api.add_resource(PostList, api_url+'/posts/<post_id>')
 api.add_resource(PointList, api_url+'/points/<point_id>')
