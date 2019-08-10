@@ -17,14 +17,14 @@ from training.training import triggerPostTraining, triggerPointTraining, trigger
 from worker import conn
 from lemmatizer.lemmatizer import getLemmatizedText
 
-if os.environ.get('AC_SIMIL_API_URL'):
-    api_url = os.environ['AC_SIMIL_API_URL']
+if os.environ.get('AC_SIMILARITY_API_URL'):
+    api_url = os.environ['AC_SIMILARITY_API_URL']
 else:
     api_url = '/api/v1'
 
-es_url = os.environ['AC_SIMIL_ES_URL'] if os.environ.get('AC_SIMIL_ES_URL')!=None else 'localhost:9200'
+es_url = os.environ['AC_SIMILARITY_ES_URL'] if os.environ.get('AC_SIMILARITY_ES_URL')!=None else 'localhost:9200'
 
-master_api_key = os.environ['AC_SIMIL_MASTER_API_KEY']
+master_api_key = os.environ['AC_SIMILARITY_MASTER_API_KEY']
 
 #DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=24*60*60
 #COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=1*60*60
@@ -136,6 +136,8 @@ class PostList(Resource):
         parser.add_argument('domain_id')
         parser.add_argument('community_id')
         parser.add_argument('group_id')
+        parser.add_argument('status')
+        parser.add_argument('official_status')
         parser.add_argument('counter_endorsements_up')
         parser.add_argument('counter_endorsements_down')
         parser.add_argument('counter_points')
@@ -191,6 +193,7 @@ class PointList(Resource):
         parser.add_argument('domain_id')
         parser.add_argument('community_id')
         parser.add_argument('group_id')
+        parser.add_argument('status')
         parser.add_argument('counter_quality_up')
         parser.add_argument('counter_quality_down')
         parser.add_argument('counter_flags')
@@ -227,6 +230,7 @@ class ArticleList(Resource):
         print("Call for: POST /articles")
         parser.add_argument('content')
         parser.add_argument('language')
+        parser.add_argument('status')
         rawArticle = parser.parse_args()
         print(rawArticle)
         esArticle = convertToNumbersWhereNeeded(rawArticle)
