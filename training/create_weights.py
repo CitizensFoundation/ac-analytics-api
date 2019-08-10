@@ -36,7 +36,6 @@ class CreateWeights:
       self.indexSearchId = int(object["policy_game_id"])
 
     res = es.get(index=self.collectionIndexName, doc_type=self.colletionIndexDocType, id=1)
-    print(res['_source'])
     self.language = res['_source']['language']
     self.weightIndexType = "weights_"+makeTrainingPrefix(self.language, indexName, object)
     self.modelFilePrefix = makeTrainingPrefix(self.language, indexName, object)
@@ -77,12 +76,12 @@ class CreateWeights:
 
     if es.indices.exists("similarityweights"):
       res = es.delete_by_query(index="similarityweights", body=body, size=10*1000)
-      print("DELETED similarityweights: "+self.weightIndexType)
+      print("Deleted similarityweights: "+self.weightIndexType)
 
   def processSimilarity(self, textId):
-    print("MOST SIMILAR FOR: "+str(textId))
+    #print("MOST SIMILAR FOR: "+str(textId))
     most_similar = self.model.docvecs.most_similar([str(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
-    print(most_similar)
+    #print(most_similar)
     for similarId,similarWeight in most_similar:
       if int(textId)<=int(similarId):
         source=textId
@@ -107,3 +106,4 @@ class CreateWeights:
     for id in ids:
         self.processSimilarity(str(id))
         i+=1
+    print("Completed create weights")

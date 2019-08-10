@@ -32,10 +32,10 @@ master_api_key = os.environ['AC_SIMILARITY_MASTER_API_KEY']
 #GROUP_TRIGGER_DEBOUNCE_TIME_SEC=10*60
 #ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=15*60
 
-DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=10
-COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=6
-GROUP_TRIGGER_DEBOUNCE_TIME_SEC=3
-ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=2
+DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=180
+COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=120
+GROUP_TRIGGER_DEBOUNCE_TIME_SEC=60
+ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=60
 
 app = Flask(__name__)
 CORS(app)
@@ -145,10 +145,10 @@ class PostList(Resource):
         parser.add_argument('counter_flags')
         parser.add_argument('language')
         rawPost = parser.parse_args()
-        print(rawPost)
+        #print(rawPost)
         esPost = convertToNumbersWhereNeeded(rawPost)
         esPost["lemmatizedContent"]=getLemmatizedText(esPost["description"], esPost.get("language"))
-        print(esPost)
+        print(esPost.get('name'))
         es.update(index='posts',doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
         if PostList.triggerPostDomainQueueTimer.get(rawPost.domain_id)==None:
             PostList.triggerPostDomainQueueTimer[rawPost.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPostTriggerQueue, [rawPost.domain_id, None, None])

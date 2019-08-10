@@ -35,7 +35,7 @@ class TrainingManager:
       self.indexSearchId = int(object["policy_game_id"])
 
     res = es.get(index=self.collectionIndexName, doc_type=self.colletionIndexDocType, id=1)
-    print(res['_source'])
+    #print(res['_source'])
     self.filename_prefix = makeTrainingPrefix(res['_source']['language'], indexName, object)
 
   def getAllItemsFromES(self):
