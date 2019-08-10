@@ -242,7 +242,7 @@ if (len(sys.argv)>1):
            es.indices.delete("domains")
         if es.indices.exists("communities"):
            es.indices.delete("communities")
-        if es.indices.exists("pogroupssts"):
+        if es.indices.exists("groups"):
            es.indices.delete("groups")
         if es.indices.exists("policyGames"):
            es.indices.delete("policyGames")
