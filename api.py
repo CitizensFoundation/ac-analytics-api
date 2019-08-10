@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 
 from threading import Timer
 
@@ -228,6 +229,24 @@ class ArticleList(Resource):
             ArticleList.triggerArticleDomainQueueTimer.start()
 
         return json.dumps({"ok": True})
+
+if (len(sys.argv)>1):
+    if (sys.argv[1]=="deleteAllIndexesES"):
+        if es.indices.exists("posts"):
+           es.indices.delete("posts")
+        if es.indices.exists("points"):
+           es.indices.delete("points")
+        if es.indices.exists("articles"):
+           es.indices.delete("articles")
+        if es.indices.exists("domains"):
+           es.indices.delete("domains")
+        if es.indices.exists("communities"):
+           es.indices.delete("communities")
+        if es.indices.exists("pogroupssts"):
+           es.indices.delete("groups")
+        if es.indices.exists("policyGames"):
+           es.indices.delete("policyGames")
+        print("HAVE DELETED ALL INDICES")
 
 api.add_resource(PostList, api_url+'/posts/<post_id>')
 api.add_resource(PointList, api_url+'/points/<point_id>')

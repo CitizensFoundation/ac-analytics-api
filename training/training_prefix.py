@@ -1,5 +1,5 @@
 def makeTrainingPrefix(language, index, object):
-    filename_prefix = language+"_"+index+"_"
+    filename_prefix = index+"_"+language+"_"
     if (object.get("domain_id")!=None):
       filename_prefix += object["domain_id"]+"_"+"_"
     elif (object["community_id"] != None):
