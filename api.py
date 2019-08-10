@@ -16,7 +16,7 @@ from elasticsearch import Elasticsearch
 from training.training import triggerPostTraining, triggerPointTraining, triggerArticleTraining
 from worker import conn
 from lemmatizer.lemmatizer import getLemmatizedText
-from simiarities.similarities import getSimilarContentPost
+from simiarities.similarities import PostSimilarity
 
 if os.environ.get('AC_SIMILARITY_API_URL'):
     api_url = os.environ['AC_SIMILARITY_API_URL']
@@ -257,7 +257,9 @@ class FindSimilarPosts(Resource):
         esFind = convertToNumbersWhereNeeded(rawFind)
         language = esFind.get("language")
         lemmatizedContent=getLemmatizedText(esFind["content"],language)
-        similar_content = getSimilarContentPost(lemmatizedContent, language, rawFind)
+        postSimilarity = PostSimilarity()
+
+        similar_content = postSimilarity.getSimilarContentPost(lemmatizedContent, language, rawFind)
 
         return json.dumps(similar_content)
 
