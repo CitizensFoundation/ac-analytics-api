@@ -51,7 +51,8 @@ class Trainer:
     print(body)
     print(self.docType)
 
-    return es.search(index=self.index, body=body)
+    #TODO add a scroll here to be able to process more than 10.000
+    return es.search(index=self.index, body=body, size=10*1000)
 
   def getAllPostTextFromES(self):
     items = self.getAllItemsFromES()
