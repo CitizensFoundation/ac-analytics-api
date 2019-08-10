@@ -11,16 +11,12 @@ class PostSimilarity:
   modelCachedSavedAt = datetime.datetime.now()
 
   def getSimilarContentPost(self, text, language, object):
-    print("getPostSimilarities")
-    print(object)
-    print(text)
-    print(language)
+    print("getSimilarContentPost")
     filename_prefix = makeTrainingPrefix(language, "posts", object)
     filename = "d2v_models/"+filename_prefix+'_d2v.model'
     print(filename)
     timeNow = datetime.datetime.now()
     timeDifference = (timeNow-PostSimilarity.modelCachedSavedAt).total_seconds()
-    print(timeDifference)
     if (PostSimilarity.modelCache.get(filename)==None or timeDifference>MODEL_CACHE_TTL_SEC):
       PostSimilarity.modelCache[filename]=Doc2Vec.load(filename)
       PostSimilarity.modelCachedSavedAt=datetime.datetime.now()
