@@ -12,9 +12,7 @@ def getSimilarContentPost(text, language, object):
   model = Doc2Vec.load(filename)
   test_vector = model.infer_vector([text],
                alpha = 0.025,
-               steps= 20,
-               min_alpha = 0.00025,
-               epochs = 100)
+               steps= 20)
   print(test_vector)
   most_similar = (model.docvecs.most_similar(positive=[test_vector], topn = 5))
   return most_similar
