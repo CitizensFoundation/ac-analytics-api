@@ -79,7 +79,7 @@ class CreateWeights:
       print("Deleted similarityweights: "+self.weightIndexType)
 
   def processSimilarity(self, textId):
-    #print("MOST SIMILAR FOR: "+str(textId))
+    print("MOST SIMILAR FOR: "+str(textId))
     most_similar = self.model.docvecs.most_similar([str(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
     #print(most_similar)
     for similarId,similarWeight in most_similar:
@@ -104,6 +104,10 @@ class CreateWeights:
     ids = self.getAllIdsFromES()
     i=0
     for id in ids:
+      try:
         self.processSimilarity(str(id))
-        i+=1
+      except:
+        print("ERROR: processSimilarity for "+str(id))
+        pass
+      i+=1
     print("Completed create weights")

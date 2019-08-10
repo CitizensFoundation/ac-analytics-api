@@ -68,9 +68,8 @@ class TrainingManager:
         #print("SCORE: "+item["_source"].get("lemmatizedContent"))
       else:
         print("ERROR: did not find lemmatized text for item")
-      if len(itemText.split()) > WORDS_MIN_FOR_SIMILARITY:
-        outItemTexts.append(itemText)
-        outItemIds.append(str(item["_id"]))
+      outItemTexts.append(itemText)
+      outItemIds.append(str(item["_id"]))
     #print(outItemTexts)
     #print(outItemIds)
     return [outItemTexts, outItemIds]

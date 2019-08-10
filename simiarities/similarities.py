@@ -24,7 +24,7 @@ class PostSimilarity:
       print("USING MODEL CACHE")
     self.model = self.modelCache[filename]
 
-    test_vector = self.model.infer_vector([text],
+    test_vector = self.model.infer_vector([text.split()],
                 alpha = 0.025,
                 steps= 20,
                 min_alpha = 0.00025,

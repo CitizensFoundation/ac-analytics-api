@@ -34,7 +34,7 @@ class TrainDoc2Vec:
     # Input for build_vocab
     tagged_data = [TaggedDocument(words = word_tokenize(d.lower()),
                   tags = all_ids[i]) for i, d in enumerate(self.textArray)]
-
+    #print(tagged_data)
 
     self.model = Doc2Vec(vector_size = self.vector_size,
                     alpha = self.alpha,
@@ -45,9 +45,14 @@ class TrainDoc2Vec:
 
     self.model.build_vocab(tagged_data)
 
-    self.model.train(tagged_data,
-                total_examples = self.model.corpus_count,
-                epochs = self.model.epochs)
+    try:
+      self.model.train(tagged_data,
+                  total_examples = self.model.corpus_count,
+                  epochs = self.model.epochs)
+    except Exception as e:
+      print("ERROR in training: "+str(e))
+      print(tagged_data)
+      return
 
     if not os.path.exists("d2v_models"):
       os.makedirs("d2v_models")

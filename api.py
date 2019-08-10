@@ -27,14 +27,16 @@ es_url = os.environ['AC_SIMILARITY_ES_URL'] if os.environ.get('AC_SIMILARITY_ES_
 
 master_api_key = os.environ['AC_SIMILARITY_MASTER_API_KEY']
 
+MIN_CHARACTER_LENGTH_FOR_PROCESSING=150
+
 #DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=24*60*60
 #COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=1*60*60
 #GROUP_TRIGGER_DEBOUNCE_TIME_SEC=10*60
 #ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=15*60
 
-DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=180
-COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=120
-GROUP_TRIGGER_DEBOUNCE_TIME_SEC=60
+DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=60*45
+COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=60*20
+GROUP_TRIGGER_DEBOUNCE_TIME_SEC=10
 ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=60
 
 app = Flask(__name__)
@@ -146,21 +148,28 @@ class PostList(Resource):
         parser.add_argument('language')
         rawPost = parser.parse_args()
         #print(rawPost)
-        esPost = convertToNumbersWhereNeeded(rawPost)
-        esPost["lemmatizedContent"]=getLemmatizedText(esPost["description"], esPost.get("language"))
-        print(esPost.get('name'))
-        es.update(index='posts',doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
-        if PostList.triggerPostDomainQueueTimer.get(rawPost.domain_id)==None:
-            PostList.triggerPostDomainQueueTimer[rawPost.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPostTriggerQueue, [rawPost.domain_id, None, None])
-            PostList.triggerPostDomainQueueTimer[rawPost.domain_id].start()
+        if (len(rawPost.get("description"))>MIN_CHARACTER_LENGTH_FOR_PROCESSING):
+            print("len: "+str(len(rawPost.get("description")))+" words: "+str(len(rawPost.get("description").split())))
+            esPost = convertToNumbersWhereNeeded(rawPost)
+            esPost["lemmatizedContent"]=getLemmatizedText(esPost["description"], esPost.get("language"))
+            print(esPost.get('name'))
+            if (esPost.get("lemmatizedContent")!=None and len(esPost.get("lemmatizedContent"))>0):
+                es.update(index='posts',doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
+                if PostList.triggerPostDomainQueueTimer.get(rawPost.domain_id)==None:
+                    PostList.triggerPostDomainQueueTimer[rawPost.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPostTriggerQueue, [rawPost.domain_id, None, None])
+                    PostList.triggerPostDomainQueueTimer[rawPost.domain_id].start()
 
-        if PostList.triggerPostCommunityQueueTimer.get(rawPost.community_id)==None:
-            PostList.triggerPostCommunityQueueTimer[rawPost.community_id] = Timer(COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPostTriggerQueue, [None, rawPost.community_id, None])
-            PostList.triggerPostCommunityQueueTimer[rawPost.community_id].start()
+                if PostList.triggerPostCommunityQueueTimer.get(rawPost.community_id)==None:
+                    PostList.triggerPostCommunityQueueTimer[rawPost.community_id] = Timer(COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPostTriggerQueue, [None, rawPost.community_id, None])
+                    PostList.triggerPostCommunityQueueTimer[rawPost.community_id].start()
 
-        if PostList.triggerPostGroupQueueTimer.get(rawPost.group_id)==None:
-            PostList.triggerPostGroupQueueTimer[rawPost.group_id] = Timer(GROUP_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToPostTriggerQueue, [None, None, rawPost.group_id])
-            PostList.triggerPostGroupQueueTimer[rawPost.group_id].start()
+                if PostList.triggerPostGroupQueueTimer.get(rawPost.group_id)==None:
+                    PostList.triggerPostGroupQueueTimer[rawPost.group_id] = Timer(GROUP_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToPostTriggerQueue, [None, None, rawPost.group_id])
+                    PostList.triggerPostGroupQueueTimer[rawPost.group_id].start()
+            else:
+                print("NO DESCRIPTION FOR POST")
+        else:
+            print("TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_PROCESSING)+ " current: "+str(len(rawPost.get("description"))))
 
         return json.dumps({"ok": True})
 
