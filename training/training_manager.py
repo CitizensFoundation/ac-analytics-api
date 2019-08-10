@@ -3,6 +3,8 @@ from training.train_d2v import TrainDoc2Vec
 from training.training_prefix import makeTrainingPrefix
 import os
 
+WORDS_MIN_FOR_SIMILARITY=25
+
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
 es = Elasticsearch(es_url)
 
@@ -66,8 +68,9 @@ class TrainingManager:
         #print("SCORE: "+item["_source"].get("lemmatizedContent"))
       else:
         print("ERROR: did not find lemmatized text for item")
-      outItemTexts.append(itemText)
-      outItemIds.append(str(item["_id"]))
+      if len(itemText.split()) > WORDS_MIN_FOR_SIMILARITY:
+        outItemTexts.append(itemText)
+        outItemIds.append(str(item["_id"]))
     #print(outItemTexts)
     #print(outItemIds)
     return [outItemTexts, outItemIds]

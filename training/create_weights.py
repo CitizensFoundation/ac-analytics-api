@@ -4,6 +4,8 @@ from gensim.models.doc2vec import Doc2Vec
 import json
 import os
 
+MAX_NUMBER_OF_SIMILAR_DOCUMENTS=5
+
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
 es = Elasticsearch(es_url)
 
@@ -52,27 +54,15 @@ class CreateWeights:
         }
     }
 
-    print("TERMS")
-    print(body)
-    print(self.docType)
-
     #TODO add a scroll here to be able to process more than 10.000
     return es.search(index=self.indexName, body=body, size=10*1000)
 
-  def getAllTextFromES(self):
+  def getAllIdsFromES(self):
     items = self.getAllItemsFromES()
-    #print(items['hits']['hits'])
-    outItemTexts = []
     outItemIds = []
     for item in items['hits']['hits']:
-      itemText = ""
-      if (item["_source"].get("lemmatizedContent")):
-        itemText+=item["_source"].get("lemmatizedContent")
-      else:
-        print("ERROR: did not find lemmatized text for item")
-      outItemTexts.append(itemText)
       outItemIds.append(int(item["_id"]))
-    return [outItemTexts, outItemIds]
+    return outItemIds
 
   def deleteWeightsFromES(self):
     body = {
@@ -85,22 +75,35 @@ class CreateWeights:
         }
     }
 
-    if es.indices.exists("similarityWeights"):
-      res = es.delete_by_query(index="similarityWeights", body=body, size=10*1000)
-      print("DELETE: "+body)
-      print(res)
+    if es.indices.exists("similarityweights"):
+      res = es.delete_by_query(index="similarityweights", body=body, size=10*1000)
+      print("DELETED similarityweights: "+self.weightIndexType)
 
-  def processSimilarity(self, textId, text):
+  def processSimilarity(self, textId):
     print("MOST SIMILAR FOR: "+str(textId))
-    print("TEXT TO CHECK: "+text)
-    most_similar = self.model.docvecs.most_similar([str(textId)], topn = 5)
+    most_similar = self.model.docvecs.most_similar([str(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
     print(most_similar)
+    for similarId,similarWeight in most_similar:
+      if int(textId)<=int(similarId):
+        source=textId
+        target=similarId
+      else:
+        source=similarId
+        target=textId
+      body = {
+        "source": source,
+        "target": target,
+        "value":  similarWeight,
+        "indexType": self.weightIndexType
+      }
+      id=source+"_"+target+"_"+self.weightIndexType
+      #print(id)
+      es.update(index='similarityweights',doc_type='similarityweight',id=id,body={'doc':body,'doc_as_upsert':True})
 
   def start(self):
     self.deleteWeightsFromES()
-    texts, ids = self.getAllTextFromES()
+    ids = self.getAllIdsFromES()
     i=0
-    for text in texts:
-        print("ID: "+str(ids[i]))
-        self.processSimilarity(str(ids[i]), texts[i])
+    for id in ids:
+        self.processSimilarity(str(id))
         i+=1
