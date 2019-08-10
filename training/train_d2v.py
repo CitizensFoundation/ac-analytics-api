@@ -30,6 +30,9 @@ class TrainDoc2Vec:
     # (I honestly don't know why Doc2Vec only accepts this format as the input)
     all_ids = [self.idArray[i:i+1] for i in range(0, len(self.idArray))]
 
+    #TODO: Make this work
+    #self.textArray = [w for w in self.textArray if not w in stop_words]  # Remove stopwords.
+    #self.textArray = [w for w in self.textArray if w.isalpha()]
     #print(self.textArray)
     # Input for build_vocab
     tagged_data = [TaggedDocument(words = word_tokenize(d.lower()),

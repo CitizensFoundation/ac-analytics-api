@@ -22,7 +22,12 @@ class PostSimilarity:
       PostSimilarity.modelCachedSavedAt=datetime.datetime.now()
     else:
       print("USING MODEL CACHE")
+
     self.model = self.modelCache[filename]
+
+    #TODO: Confirm this is needed https://github.com/RaRe-Technologies/gensim/issues/2260
+    #self.model.docvecs.vectors_docs_norm = None
+    #self.model.docvecs.init_sims()
 
     test_vector = self.model.infer_vector([text.split()],
                 alpha = 0.025,

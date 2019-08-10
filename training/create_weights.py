@@ -80,6 +80,9 @@ class CreateWeights:
 
   def processSimilarity(self, textId):
     print("MOST SIMILAR FOR: "+str(textId))
+    #TODO: Confirm if this is needed https://github.com/RaRe-Technologies/gensim/issues/2260
+    #self.model.docvecs.vectors_docs_norm = None
+    #self.model.docvecs.init_sims()
     most_similar = self.model.docvecs.most_similar([str(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
     #print(most_similar)
     for similarId,similarWeight in most_similar:
@@ -96,7 +99,7 @@ class CreateWeights:
         "indexType": self.weightIndexType
       }
       id=source+"_"+target+"_"+self.weightIndexType
-      #print(id)
+      #print(similarWeight)
       es.update(index='similarityweights',doc_type='similarityweight',id=id,body={'doc':body,'doc_as_upsert':True})
 
   def start(self):
