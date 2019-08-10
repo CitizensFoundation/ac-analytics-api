@@ -56,6 +56,46 @@ def convertToNumbersWhereNeeded(inDict):
             outDict[name]=value
     return outDict
 
+class DomainList(Resource):
+    def post(self, domain_id):
+        print("Call for: POST /domains")
+        parser.add_argument('name')
+        parser.add_argument('language')
+        rawPost = parser.parse_args()
+        print(rawPost)
+        es.update(index='domains',doc_type='domain',id=int(domain_id),body={'doc':rawPost,'doc_as_upsert':True})
+        return json.dumps({"ok": True})
+
+class CommunityList(Resource):
+    def post(self, community_id):
+        print("Call for: POST /communities")
+        parser.add_argument('name')
+        parser.add_argument('language')
+        rawPost = parser.parse_args()
+        print(rawPost)
+        es.update(index='communities',doc_type='community',id=int(community_id),body={'doc':rawPost,'doc_as_upsert':True})
+        return json.dumps({"ok": True})
+
+class GroupList(Resource):
+    def post(self, group_id):
+        print("Call for: POST /groups")
+        parser.add_argument('name')
+        parser.add_argument('language')
+        rawPost = parser.parse_args()
+        print(rawPost)
+        es.update(index='groups',doc_type='group',id=int(group_id),body={'doc':rawPost,'doc_as_upsert':True})
+        return json.dumps({"ok": True})
+
+class PolicyGameList(Resource):
+    def post(self, policy_game_id):
+        print("Call for: POST /policy_games")
+        parser.add_argument('name')
+        parser.add_argument('language')
+        rawPost = parser.parse_args()
+        print(rawPost)
+        es.update(index='policy_games',doc_type='policyGame',id=int(policy_game_id),body={'doc':rawPost,'doc_as_upsert':True})
+        return json.dumps({"ok": True})
+
 class PostList(Resource):
     triggerPostDomainQueueTimer = {}
     triggerPostCommunityQueueTimer = {}
@@ -192,5 +232,9 @@ class ArticleList(Resource):
 api.add_resource(PostList, api_url+'/posts/<post_id>')
 api.add_resource(PointList, api_url+'/points/<point_id>')
 api.add_resource(ArticleList, api_url+'/articles/<article_id>')
+api.add_resource(DomainList, api_url+'/domains/<domain_id>')
+api.add_resource(CommunityList, api_url+'/communities/<community_id>')
+api.add_resource(GroupList, api_url+'/groups/<group_id>')
+api.add_resource(PolicyGameList, api_url+'/policy_games/<policy_game_id>')
 app.run()
 

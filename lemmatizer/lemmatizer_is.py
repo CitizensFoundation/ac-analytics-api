@@ -8,16 +8,18 @@ reynir = Reynir()
 # Yields all lemmas in every sentences
 # Structure: [file[sent[lemmas]]]
 def getLemmatizedTextIS(text):
-  out = [str(l) for l in lemmatize(text)]
-  return ' '.join(out)
+  lemmas = ''.join(lemmatize(text))
+  lemmas = lemmas.replace(" .", ". ")
+  lemmas = lemmas.replace(" !", "!")
+  return lemmas
 
 def lemmatize(text):
   lemmas = []
-  sents = reynir.parse(file)
+  sents = reynir.parse(text)
   for sent in sents['sentences']:
       try:
-          lemmas.append(sent.tree.lemmas)
+          lemmas.append(' '.join(sent.tree.lemmas))
       except AttributeError:
           print("ERROR: lemmatize AttributeError")
           pass
-  yield lemmas
+  return lemmas

@@ -11,15 +11,30 @@ class Trainer:
     self.index = index
     self.docType = docType
     self.object = object
-    self.filename_prefix = makeTrainingPrefix(index, object)
     if (object.get("domain_id")!=None):
       self.searchTerms = {"domain_id": int(object["domain_id"])}
+      self.indexType = "domains"
+      self.indexDocType = "domain"
+      self.indexSearchId = int(object["domain_id"])
     elif (object["community_id"] != None):
       self.searchTerms = {"community_id": int(object["community_id"])}
+      self.indexType = "communities"
+      self.indexDocType = "community"
+      self.indexSearchId = int(object["community_id"])
     elif (object["group_id"]):
       self.searchTerms = {"group_id": int(object["group_id"])}
-    else:
-      self.searchTerms = {}
+      self.indexType = "groups"
+      self.indexDocType = "group"
+      self.indexSearchId = int(object["group_id"])
+    elif (object["policy_game_id"]):
+      self.searchTerms = {"policy_game_id": int(object["policy_game_id"])}
+      self.indexType = "policy_games"
+      self.indexDocType = "policy_game"
+      self.indexSearchId = int(object["policy_game_id"])
+
+    res = es.get(index=self.indexType, doc_type=self.indexDocType, id=1)
+    print(res['_source'])
+    self.filename_prefix = makeTrainingPrefix(res['_source']['language'], index, object)
 
   def getAllItemsFromES(self):
     body = {
@@ -40,13 +55,14 @@ class Trainer:
 
   def getAllPostTextFromES(self):
     items = self.getAllItemsFromES()
+    print(items['hits']['hits'])
     outItemTexts = []
     outItemIds = []
     for item in items['hits']['hits']:
       itemText = ""
       if (item["_source"].get("lemmatizedContent")):
         itemText+=item["_source"].get("lemmatizedContent")
-        print("SCORE")
+        print("SCORE: "+item["_source"].get("lemmatizedContent"))
       else:
         if item["_source"]["name"]:
           itemText+=item["_source"]["name"]+" "
