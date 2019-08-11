@@ -3,8 +3,6 @@ from training.train_d2v import TrainDoc2Vec
 from training.training_prefix import makeTrainingPrefix
 import os
 
-WORDS_MIN_FOR_SIMILARITY=25
-
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
 es = Elasticsearch(es_url)
 
