@@ -9,8 +9,6 @@ reynir = Reynir()
 # Structure: [file[sent[lemmas]]]
 def getLemmatizedTextIS(text):
   lemmas = ''.join(lemmatize(text))
-  lemmas = lemmas.replace(" .", ". ")
-  lemmas = lemmas.replace(" !", "!")
   return lemmas
 
 def lemmatize(text):
