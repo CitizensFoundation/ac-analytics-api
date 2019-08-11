@@ -18,11 +18,10 @@ def lemmatize(text):
   sents = reynir.parse(text)
   for sent in sents['sentences']:
       try:
-          reynir_lemmas = sent.tree.lemmas
-          lemmas.append(' '.join(reynir_lemmas))
+          lemmas.append(' '.join(sent.tree.lemmas))
       except AttributeError:
-          print("ERROR: lemmatize AttributeError, adding raw: "+text)
-          lemmas.append(text)
+          print("ERROR: lemmatize AttributeError, adding raw: "+str(sent))
+          lemmas.append(str(sent))
           pass
   return lemmas
 

@@ -29,7 +29,7 @@ class PostSimilarity:
     #self.model.docvecs.vectors_docs_norm = None
     #self.model.docvecs.init_sims()
 
-    test_vector = self.model.infer_vector([text.split()],
+    test_vector = self.model.infer_vector([text.lower().split()],
                 alpha = 0.025,
                 steps= 20,
                 min_alpha = 0.00025,

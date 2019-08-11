@@ -4,7 +4,6 @@ from lemmatizer.lemmatizer_is import getLemmatizedTextIS
 
 def getLemmatizedText(text, language):
   outText = ""
-  text = text.lower()
   if (language):
     if (language=="en"):
       outText = getLemmatizedTextEN(text)
