@@ -2,16 +2,15 @@ from gensim.models import Word2Vec
 from reynir import Reynir
 import regex as re
 
-# For parsing sentences
-reynir = Reynir()
-
 # Yields all lemmas in every sentences
 # Structure: [file[sent[lemmas]]]
 def getLemmatizedTextIS(text):
-  lemmas = ''.join(lemmatize(text))
+  lemmas = ' '.join(lemmatizeParse(text))
   return lemmas
 
-def lemmatize(text):
+def lemmatizeParse(text):
+  # For parsing sentences
+  reynir = Reynir()
   lemmas = []
   sents = reynir.parse(text)
   for sent in sents['sentences']:

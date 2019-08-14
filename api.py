@@ -34,6 +34,7 @@ from training.training import triggerPostTraining, triggerPointTraining, trigger
 from worker import conn
 from lemmatizer.lemmatizer import getLemmatizedText
 from simiarities.similarities import PostSimilarity
+from training.weights_manager import WeightsManager
 
 if os.environ.get('AC_SIMILARITY_API_URL'):
     api_url = os.environ['AC_SIMILARITY_API_URL']
@@ -83,8 +84,8 @@ def convertToNumbersWhereNeeded(inDict):
 def before_request():
     headers = request.headers
     auth = headers.get("X-Api-Key")
-    if (auth!=master_api_key):
-        return jsonify({"message": "ERROR: Unauthorized"}), 401
+#    if (auth!=master_api_key):
+        #return jsonify({"message": "ERROR: Unauthorized"}), 401
 
 class DomainList(Resource):
     def post(self, domain_id):
@@ -162,6 +163,10 @@ class PostList(Resource):
         parser.add_argument('counter_endorsements_down')
         parser.add_argument('counter_points')
         parser.add_argument('counter_flags')
+        parser.add_argument('imageUrl')
+        parser.add_argument('videoUrl')
+        parser.add_argument('audioUrl')
+        parser.add_argument('publicAccess')
         parser.add_argument('language')
         rawPost = parser.parse_args()
         #print(rawPost)
@@ -289,6 +294,16 @@ class FindSimilarPosts(Resource):
 
         return json.dumps(similar_content)
 
+class GetCommunityPostsWithWeights(Resource):
+    def get(self, community_id):
+        weights = WeightsManager("posts","post",{"community_id": community_id}, None)
+        return jsonify(weights.getNodesAndLinksFromES())
+
+class GetGroupPostsWithWeights(Resource):
+    def get(self, group_id):
+        weights = WeightsManager("posts","post",{"group_id": group_id}, None)
+        return jsonify(weights.getNodesAndLinksFromES())
+
 if (len(sys.argv)>1):
     if (sys.argv[1]=="deleteAllIndexesES"):
         if es.indices.exists("posts"):
@@ -317,4 +332,6 @@ api.add_resource(CommunityList, api_url+'/communities/<community_id>')
 api.add_resource(GroupList, api_url+'/groups/<group_id>')
 api.add_resource(PolicyGameList, api_url+'/policy_games/<policy_game_id>')
 api.add_resource(FindSimilarPosts, api_url+'/find_similar_posts')
+api.add_resource(GetCommunityPostsWithWeights, api_url+'/getCommunityPostsWithWeights/<community_id>')
+api.add_resource(GetGroupPostsWithWeights, api_url+'/getGroupPostsWithWeights/<group_id>')
 app.run()

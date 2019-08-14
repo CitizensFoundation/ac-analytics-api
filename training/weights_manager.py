@@ -4,12 +4,13 @@ from gensim.models.doc2vec import Doc2Vec
 import json
 import os
 
-MAX_NUMBER_OF_SIMILAR_DOCUMENTS=5
+MAX_NUMBER_OF_SIMILAR_DOCUMENTS=15
+CUTTOFF_FOR_WEIGTHS=0.62
 
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
 es = Elasticsearch(es_url)
 
-class CreateWeights:
+class WeightsManager:
   def __init__(self, indexName, docType, object, model):
     self.indexName = indexName
     self.docType = docType
@@ -19,17 +20,17 @@ class CreateWeights:
       self.collectionIndexName = "domains"
       self.colletionIndexDocType = "domain"
       self.collectionIndexSearchId = int(object["domain_id"])
-    elif (object["community_id"] != None):
+    elif (object.get("community_id") != None):
       self.searchTerms = {"community_id": int(object["community_id"])}
       self.collectionIndexName = "communities"
       self.colletionIndexDocType = "community"
       self.collectionIndexSearchId = int(object["community_id"])
-    elif (object["group_id"]):
+    elif (object.get("group_id")):
       self.searchTerms = {"group_id": int(object["group_id"])}
       self.collectionIndexName = "groups"
       self.colletionIndexDocType = "group"
       self.collectionIndexSearchId = int(object["group_id"])
-    elif (object["policy_game_id"]):
+    elif (object.get("policy_game_id")):
       self.searchTerms = {"policy_game_id": int(object["policy_game_id"])}
       self.collectionIndexName = "policy_games"
       self.colletionIndexDocType = "policy_game"
@@ -62,6 +63,20 @@ class CreateWeights:
     for item in items['hits']['hits']:
       outItemIds.append(int(item["_id"]))
     return outItemIds
+
+  def getAllWeightsFromES(self):
+    indexTypeDict = {"term": {"indexType": self.weightIndexType } }
+    body = {
+        "query": {
+          "bool": {
+            "must": [
+              indexTypeDict
+            ]
+          }
+        }
+    }
+    #TODO A cursor for larger results
+    return es.search(index="similarityweights", body=body, size=10*1000)
 
   def deleteWeightsFromES(self):
     body = {
@@ -102,7 +117,38 @@ class CreateWeights:
       #print(similarWeight)
       es.update(index='similarityweights',doc_type='similarityweight',id=id,body={'doc':body,'doc_as_upsert':True})
 
-  def start(self):
+  def countLinks(self, links, nodeId):
+    count = 0
+    for link in links:
+      if (link["source"]==nodeId):
+        count+=1
+      if (link["target"]==nodeId):
+        count+=1
+    return count
+
+  def getNodesAndLinksFromES(self):
+    nodes = self.getAllItemsFromES()["hits"]["hits"]
+    links = self.getAllWeightsFromES()["hits"]["hits"]
+
+    outLinks = []
+    for link in links:
+      if (link["_source"]["value"]>CUTTOFF_FOR_WEIGTHS):
+        outLinks.append(link["_source"])
+
+    outNodes = []
+    for node in nodes:
+      outNodes.append(
+        {
+          "id": node["_id"],
+          "group": node["_source"]["group_id"],
+          "name": node["_source"]["name"],
+          "linkCount": self.countLinks(outLinks, node["_id"]),
+          "lemmatizedContent": node["_source"]["lemmatizedContent"]
+        }
+      )
+    return {"nodes": outNodes, "links": outLinks }
+
+  def startProcessing(self):
     self.deleteWeightsFromES()
     ids = self.getAllIdsFromES()
     i=0
