@@ -4,7 +4,7 @@ from gensim.models.doc2vec import Doc2Vec
 import json
 import os
 
-MAX_NUMBER_OF_SIMILAR_DOCUMENTS=15
+MAX_NUMBER_OF_SIMILAR_DOCUMENTS=20
 CUTTOFF_FOR_WEIGTHS=0.62
 
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'

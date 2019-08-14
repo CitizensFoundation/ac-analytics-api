@@ -3,6 +3,8 @@ from lemmatizer.lemmatizer_en import getLemmatizedTextEN
 from lemmatizer.lemmatizer_is_reynir_bin import getLemmatizedTextIS
 
 def getLemmatizedText(text, language):
+  language = language[:2]
+  language = language.lower()
   outText = ""
   if (language):
     if (language=="en"):
@@ -15,7 +17,7 @@ def getLemmatizedText(text, language):
       outText = text.lower().replace('.','.')
       print("WARNING: Could not find Lemmatizer for language: "+language+" text "+text)
   else:
-    outText = text
+    outText = text.lower().replace('.','.')
     print("ERROR: No language for Lemmatizing text: "+text)
   cleaned = re.sub(' +', ' ',outText)
   cleaned = cleaned.replace('\n', '')

@@ -45,7 +45,7 @@ es_url = os.environ['AC_SIMILARITY_ES_URL'] if os.environ.get('AC_SIMILARITY_ES_
 
 master_api_key = os.environ['AC_SIMILARITY_MASTER_API_KEY']
 
-MIN_CHARACTER_LENGTH_FOR_PROCESSING=250
+MIN_CHARACTER_LENGTH_FOR_PROCESSING=50
 
 #DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=24*60*60
 #COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=1*60*60
@@ -173,7 +173,7 @@ class PostList(Resource):
         if (len(rawPost.get("description"))>MIN_CHARACTER_LENGTH_FOR_PROCESSING):
             print("len: "+str(len(rawPost.get("description")))+" words: "+str(len(rawPost.get("description").split())))
             esPost = convertToNumbersWhereNeeded(rawPost)
-            esPost["lemmatizedContent"]=getLemmatizedText(esPost["description"], esPost.get("language"))
+            esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"]+" "+esPost["description"], esPost.get("language"))
             print(esPost.get('name'))
             if (esPost.get("lemmatizedContent")!=None and len(esPost.get("lemmatizedContent"))>0):
                 es.update(index='posts',doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
@@ -304,6 +304,11 @@ class GetGroupPostsWithWeights(Resource):
         weights = WeightsManager("posts","post",{"group_id": group_id}, None)
         return jsonify(weights.getNodesAndLinksFromES())
 
+class GetDomainPostsWithWeights(Resource):
+    def get(self, domain_id):
+        weights = WeightsManager("posts","post",{"domain_id": domain_id}, None)
+        return jsonify(weights.getNodesAndLinksFromES())
+
 if (len(sys.argv)>1):
     if (sys.argv[1]=="deleteAllIndexesES"):
         if es.indices.exists("posts"):
@@ -334,4 +339,5 @@ api.add_resource(PolicyGameList, api_url+'/policy_games/<policy_game_id>')
 api.add_resource(FindSimilarPosts, api_url+'/find_similar_posts')
 api.add_resource(GetCommunityPostsWithWeights, api_url+'/getCommunityPostsWithWeights/<community_id>')
 api.add_resource(GetGroupPostsWithWeights, api_url+'/getGroupPostsWithWeights/<group_id>')
+api.add_resource(GetDomainPostsWithWeights, api_url+'/getDomainPostsWithWeights/<domain_id>')
 app.run()
