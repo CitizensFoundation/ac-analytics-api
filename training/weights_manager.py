@@ -5,7 +5,8 @@ import json
 import os
 
 MAX_NUMBER_OF_SIMILAR_DOCUMENTS=20
-CUTTOFF_FOR_WEIGTHS=0.62
+#CUTTOFF_FOR_WEIGTHS=0.75
+CUTTOFF_FOR_WEIGTHS=0.65
 
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
 es = Elasticsearch(es_url)
@@ -66,9 +67,12 @@ class WeightsManager:
 
   def getAllWeightsFromES(self):
     indexTypeDict = {"term": {"indexType": self.weightIndexType } }
+    #moreThanLimit = [{"range":{"value": {"gte":CUTTOFF_FOR_WEIGTHS }}},{"range":{"value": {"lte":0.75 }}}]
+    moreThanLimit = [{"range":{"value": {"gte":CUTTOFF_FOR_WEIGTHS }}}]
     body = {
         "query": {
           "bool": {
+            "filter": moreThanLimit,
             "must": [
               indexTypeDict
             ]
@@ -142,6 +146,9 @@ class WeightsManager:
           "id": node["_id"],
           "group": node["_source"]["group_id"],
           "name": node["_source"]["name"],
+          "imageUrl": node["_source"]["imageUrl"],
+          "counter_endorsements_down": node["_source"]["counter_endorsements_down"],
+          "counter_endorsements_up": node["_source"]["counter_endorsements_up"],
           "linkCount": self.countLinks(outLinks, node["_id"]),
           "lemmatizedContent": node["_source"]["lemmatizedContent"]
         }

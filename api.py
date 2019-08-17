@@ -93,6 +93,9 @@ class DomainList(Resource):
         parser.add_argument('name')
         parser.add_argument('language')
         rawPost = parser.parse_args()
+        language = rawPost['language'][:2]
+        language = language.lower()
+        rawPost['language']=language
         print(rawPost)
         es.update(index='domains',doc_type='domain',id=int(domain_id),body={'doc':rawPost,'doc_as_upsert':True})
         return json.dumps({"ok": True})
@@ -103,6 +106,9 @@ class CommunityList(Resource):
         parser.add_argument('name')
         parser.add_argument('language')
         rawPost = parser.parse_args()
+        language = rawPost['language'][:2]
+        language = language.lower()
+        rawPost['language']=language
         print(rawPost)
         es.update(index='communities',doc_type='community',id=int(community_id),body={'doc':rawPost,'doc_as_upsert':True})
         return json.dumps({"ok": True})
@@ -113,6 +119,9 @@ class GroupList(Resource):
         parser.add_argument('name')
         parser.add_argument('language')
         rawPost = parser.parse_args()
+        language = rawPost['language'][:2]
+        language = language.lower()
+        rawPost['language']=language
         print(rawPost)
         es.update(index='groups',doc_type='group',id=int(group_id),body={'doc':rawPost,'doc_as_upsert':True})
         return json.dumps({"ok": True})
@@ -123,6 +132,9 @@ class PolicyGameList(Resource):
         parser.add_argument('name')
         parser.add_argument('language')
         rawPost = parser.parse_args()
+        language = rawPost['language'][:2]
+        language = language.lower()
+        rawPost['language']=language
         print(rawPost)
         es.update(index='policy_games',doc_type='policyGame',id=int(policy_game_id),body={'doc':rawPost,'doc_as_upsert':True})
         return json.dumps({"ok": True})
@@ -169,6 +181,9 @@ class PostList(Resource):
         parser.add_argument('publicAccess')
         parser.add_argument('language')
         rawPost = parser.parse_args()
+        language = rawPost['language'][:2]
+        language = language.lower()
+        rawPost['language']=language
         #print(rawPost)
         if (len(rawPost.get("description"))>MIN_CHARACTER_LENGTH_FOR_PROCESSING):
             print("len: "+str(len(rawPost.get("description")))+" words: "+str(len(rawPost.get("description").split())))
@@ -232,6 +247,9 @@ class PointList(Resource):
         parser.add_argument('value')
         parser.add_argument('language')
         rawPoint = parser.parse_args()
+        language = rawPost['language'][:2]
+        language = language.lower()
+        rawPost['language']=language
         print(rawPoint)
         esPoint = convertToNumbersWhereNeeded(rawPoint)
         esPoint["lemmatizedContent"]=getLemmatizedText(esPoint["content"], esPoint.get("language"))
