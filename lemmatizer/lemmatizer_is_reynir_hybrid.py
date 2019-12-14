@@ -12,6 +12,7 @@ def getLemmatizedTextIS(text):
 
 def lemmatizeParse(text):
   # For parsing sentences
+  print(text)
   reynir = Reynir()
   lemmas = []
   sents = reynir.parse(text)
