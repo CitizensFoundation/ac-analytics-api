@@ -286,10 +286,10 @@ class PointList(Resource):
         parser.add_argument('value')
         parser.add_argument('language')
         rawPoint = parser.parse_args()
+        print(rawPoint)
         language = rawPoint['language'][:2]
         language = language.lower()
         rawPost['language']=language
-        print(rawPoint)
 
         if rawPoint['status']=='published' and rawPoint['post_status']=='published':
             esPoint = convertToNumbersWhereNeeded(rawPoint)
