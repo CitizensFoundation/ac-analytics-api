@@ -277,7 +277,6 @@ class PointList(Resource):
             PointList.triggerPointGroupQueueTimer[rawPoint.post_id].start()
 
     def post(self, cluster_id, point_id):
-        print("Call for: POST /points")
         parser.add_argument('content')
         parser.add_argument('post_id')
         parser.add_argument('domain_id')
