@@ -6,7 +6,7 @@ import os
 
 MAX_NUMBER_OF_SIMILAR_DOCUMENTS=20
 #CUTTOFF_FOR_WEIGTHS=0.75
-CUTTOFF_FOR_WEIGTHS=0.65
+CUTTOFF_FOR_WEIGTHS=0.63
 
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
 es = Elasticsearch(es_url)
@@ -18,22 +18,27 @@ class WeightsManager:
     self.object = object
     if (object.get("domain_id")!=None):
       self.searchTerms = {"domain_id": int(object["domain_id"])}
-      self.collectionIndexName = "domains"
+      self.collectionIndexName = "domains_"+object["cluster_id"]
       self.colletionIndexDocType = "domain"
       self.collectionIndexSearchId = int(object["domain_id"])
     elif (object.get("community_id") != None):
       self.searchTerms = {"community_id": int(object["community_id"])}
-      self.collectionIndexName = "communities"
+      self.collectionIndexName = "communities_"+object["cluster_id"]
       self.colletionIndexDocType = "community"
       self.collectionIndexSearchId = int(object["community_id"])
     elif (object.get("group_id")):
       self.searchTerms = {"group_id": int(object["group_id"])}
-      self.collectionIndexName = "groups"
+      self.collectionIndexName = "groups_"+object["cluster_id"]
       self.colletionIndexDocType = "group"
       self.collectionIndexSearchId = int(object["group_id"])
+    elif (object.get("post_id")):
+      self.searchTerms = {"post_id": int(object["post_id"])}
+      self.collectionIndexName = "posts_"+object["cluster_id"]
+      self.colletionIndexDocType = "post"
+      self.collectionIndexSearchId = int(object["post_id"])
     elif (object.get("policy_game_id")):
       self.searchTerms = {"policy_game_id": int(object["policy_game_id"])}
-      self.collectionIndexName = "policy_games"
+      self.collectionIndexName = "policy_games_"+object["cluster_id"]
       self.colletionIndexDocType = "policy_game"
       self.collectionIndexSearchId = int(object["policy_game_id"])
 
@@ -80,7 +85,7 @@ class WeightsManager:
         }
     }
     #TODO A cursor for larger results
-    return es.search(index="similarityweights", body=body, size=10*1000)
+    return es.search(index="similarityweights_"+self.object["cluster_id"], body=body, size=10*1000)
 
   def deleteWeightsFromES(self):
     body = {
@@ -93,8 +98,8 @@ class WeightsManager:
         }
     }
 
-    if es.indices.exists("similarityweights"):
-      res = es.delete_by_query(index="similarityweights", body=body, size=10*1000)
+    if es.indices.exists("similarityweights_"+self.object["cluster_id"]):
+      res = es.delete_by_query(index="similarityweights_"+self.object["cluster_id"], body=body, size=10*1000)
       print("Deleted similarityweights: "+self.weightIndexType)
 
   def processSimilarity(self, textId):
@@ -119,7 +124,7 @@ class WeightsManager:
       }
       id=source+"_"+target+"_"+self.weightIndexType
       #print(similarWeight)
-      es.update(index='similarityweights',doc_type='similarityweight',id=id,body={'doc':body,'doc_as_upsert':True})
+      es.update(index="similarityweights_"+self.object["cluster_id"],doc_type='similarityweight',id=id,body={'doc':body,'doc_as_upsert':True})
 
   def countLinks(self, links, nodeId):
     count = 0

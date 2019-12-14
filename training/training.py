@@ -3,21 +3,21 @@ from training.weights_manager import WeightsManager
 
 def triggerPostTraining(type, object):
   print("triggerPostTraining")
-  trainer = TrainingManager("posts","post",object)
+  trainer = TrainingManager("posts_"+object["cluster_id"],"post",object)
   trainer.start()
-  weights = WeightsManager("posts","post",object,trainer.model)
+  weights = WeightsManager("posts_"+object["cluster_id"],"post",object,trainer.model)
   weights.startProcessing()
 
 def triggerPointTraining(type, object):
   print("triggerPointTraining")
-  trainer = TrainingManager("points","post",object)
+  trainer = TrainingManager("points_"+object["cluster_id"],"point",object)
   trainer.start()
-  weights = WeightsManager("points","post",object,trainer.model)
+  weights = WeightsManager("points_"+object["cluster_id"],"point",object,trainer.model)
   weights.startProcessing()
 
 def triggerArticleTraining(type, object):
   print("triggerArticleTraining")
-  trainer = TrainingManager("articles","article",object)
+  trainer = TrainingManager("articles_"+object["cluster_id"],"article",object)
   trainer.start()
-  weights = WeightsManager("articles","article",object,trainer.model)
+  weights = WeightsManager("articles_"+object["cluster_id"],"article",object,trainer.model)
   weights.startProcessing()

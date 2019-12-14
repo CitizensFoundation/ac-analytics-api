@@ -1,6 +1,9 @@
 import re
 from lemmatizer.lemmatizer_en import getLemmatizedTextEN
-from lemmatizer.lemmatizer_is_reynir_bin import getLemmatizedTextIS
+from lemmatizer.lemmatizer_is_reynir_hybrid import getLemmatizedTextIS
+
+#TODO: Use spacy where possible
+#TODO: Use SnowballStemmer for whats there
 
 def getLemmatizedText(text, language):
   language = language[:2]
