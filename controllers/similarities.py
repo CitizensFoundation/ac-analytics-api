@@ -245,6 +245,7 @@ class PointList(Resource):
                 "domain_id": domain_id,
                 "community_id": community_id,
                 "group_id": group_id,
+                "post_id": post_id
                 }), result_ttl=1*60*60*1000)
         if (domain_id!=None):
             PointList.triggerPointDomainQueueTimer[domain_id]=None;
@@ -258,7 +259,7 @@ class PointList(Resource):
         if (post_id!=None):
             PointList.triggerPointPostQueueTimer[post_id]=None;
 
-    def triggerTrainingUpdate(self, cluster_id, rawPoint):
+    def triggerPointTrainingUpdate(self, cluster_id, rawPoint):
         if PointList.triggerPointDomainQueueTimer.get(rawPoint.domain_id)==None:
             PointList.triggerPointDomainQueueTimer[rawPoint.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPointTriggerQueue, [cluster_id, rawPoint.domain_id, None, None, None])
             PointList.triggerPointDomainQueueTimer[rawPoint.domain_id].start()
@@ -304,14 +305,14 @@ class PointList(Resource):
             esPoint = convertToNumbersWhereNeeded(rawPoint)
             esPoint["lemmatizedContent"]=getLemmatizedText(esPoint["content"], esPoint.get("language"))
             es.update(index='points_'+cluster_id,doc_type='point',id=point_id,body={'doc':esPoint,'doc_as_upsert':True})
-            self.triggerTrainingUpdate(cluster_id, rawPoint)
+            self.triggerPointTrainingUpdate(cluster_id, rawPoint)
         else:
             try:
                 es.delete(index='points_'+cluster_id,doc_type='point',id=point_id)
             except NotFoundError:
                 print("Point not found for delete: "+point_id)
                 pass
-            self.triggerTrainingUpdate(cluster_id, rawPoint)
+            self.triggerPointTrainingUpdate(cluster_id, rawPoint)
 
         return json.dumps({"ok": True})
 
