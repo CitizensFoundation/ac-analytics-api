@@ -21,6 +21,7 @@ def lemmatizeParse(text):
           lemmas.append(' '.join(sent.tree.lemmas))
       except AttributeError:
           print("ERROR: lemmatize AttributeError, adding raw: "+str(sent))
+          sent = str(sent)
           bin = BIN_Compressed()
           bin_lemmas = []
           sent_words = sent_tokenize(sent.lower())
