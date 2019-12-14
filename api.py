@@ -58,7 +58,7 @@ queue = Queue(connection=conn)
 @app.before_request
 def before_request():
     headers = request.headers
-    auth = headers.get("X-Api-Key")
+    auth = headers.get("X-API-KEY")
     if (auth!=master_api_key):
         return jsonify({"message": "ERROR: Unauthorized"}), 401
 
