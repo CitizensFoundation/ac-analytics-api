@@ -252,19 +252,19 @@ class PointList(Resource):
 
     def triggerTrainingUpdate(self, cluster_id, rawPoint):
         if PointList.triggerPointDomainQueueTimer.get(rawPoint.domain_id)==None:
-            PointList.triggerPointDomainQueueTimer[rawPoint.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPointTriggerQueue, [cluster_id, rawPoint.domain_id, None, None])
+            PointList.triggerPointDomainQueueTimer[rawPoint.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPointTriggerQueue, [cluster_id, rawPoint.domain_id, None, None, None])
             PointList.triggerPointDomainQueueTimer[rawPoint.domain_id].start()
 
         if PointList.triggerPointCommunityQueueTimer.get(rawPoint.community_id)==None:
-            PointList.triggerPointCommunityQueueTimer[rawPoint.community_id] = Timer(COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPointTriggerQueue, [cluster_id, None, rawPoint.community_id, None])
+            PointList.triggerPointCommunityQueueTimer[rawPoint.community_id] = Timer(COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPointTriggerQueue, [cluster_id, None, rawPoint.community_id, None, None])
             PointList.triggerPointCommunityQueueTimer[rawPoint.community_id].start()
 
         if PointList.triggerPointGroupQueueTimer.get(rawPoint.group_id)==None:
-            PointList.triggerPointGroupQueueTimer[rawPoint.group_id] = Timer(GROUP_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToPointTriggerQueue, [cluster_id, None, None, rawPoint.group_id])
+            PointList.triggerPointGroupQueueTimer[rawPoint.group_id] = Timer(GROUP_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToPointTriggerQueue, [cluster_id, None, None, rawPoint.group_id, None])
             PointList.triggerPointGroupQueueTimer[rawPoint.group_id].start()
 
         if PointList.triggerPointPostQueueTimer.get(rawPoint.post_id)==None:
-            PointList.triggerPointGroupQueueTimer[rawPoint.post_id] = Timer(POST_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToPointTriggerQueue, [cluster_id, None, None, rawPoint.post_id])
+            PointList.triggerPointGroupQueueTimer[rawPoint.post_id] = Timer(POST_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToPointTriggerQueue, [cluster_id, None, None, None, rawPoint.post_id])
             PointList.triggerPointGroupQueueTimer[rawPoint.post_id].start()
 
     def post(self, cluster_id, point_id):
