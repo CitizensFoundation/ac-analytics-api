@@ -96,4 +96,5 @@ api.add_resource(GetPostPointsWithWeights, api_url+'/GetPostPointsWithWeights/<c
 
 # Anonymized export APIs
 
-app.run(host='0.0.0.0')
+if __name__ == "__main__":
+    app.run(host='0.0.0.0')
