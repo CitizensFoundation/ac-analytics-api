@@ -20,7 +20,7 @@ def lemmatizeParse(text):
       try:
           lemmas.append(' '.join(sent.tree.lemmas))
       except AttributeError:
-          print("ERROR: lemmatize AttributeError, adding raw: "+str(sent))
+          print("Warning: lemmatize AttributeError, adding raw: "+str(sent))
           #TODO: CHECK HACKY LINE BELOW RVB
           sent = str(sent)
           bin = BIN_Compressed()

@@ -27,7 +27,7 @@ from flask_restful import reqparse, Resource
 from rq import Queue
 from rq.job import Job
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, NotFoundError
 
 from training.training import triggerPostTraining, triggerPointTraining, triggerArticleTraining
 from worker import conn
@@ -90,7 +90,12 @@ class DomainList(Resource):
         if rawPost['status']=='published':
             es.update(index='domains_'+cluster_id,doc_type='domain',id=int(domain_id),body={'doc':rawPost,'doc_as_upsert':True})
         else:
-            es.delete(index='domains_'+cluster_id,doc_type='domain',id=int(domain_id))
+            try:
+                es.delete(index='domains_'+cluster_id,doc_type='domain',id=int(domain_id))
+            except NotFoundError:
+                print("Domain not found for delete: "+domain_id)
+                pass
+
         return json.dumps({"ok": True})
 
 class CommunityList(Resource):
@@ -107,7 +112,11 @@ class CommunityList(Resource):
         if rawPost['status']=='published':
             es.update(index='communities_'+cluster_id,doc_type='community',id=int(community_id),body={'doc':rawPost,'doc_as_upsert':True})
         else:
-            es.delete(index='communities_'+cluster_id,doc_type='community',id=int(community_id))
+            try:
+                es.delete(index='communities_'+cluster_id,doc_type='community',id=int(community_id))
+            except NotFoundError:
+                print("Community not found for delete: "+community_id)
+                pass
         return json.dumps({"ok": True})
 
 class GroupList(Resource):
@@ -126,21 +135,12 @@ class GroupList(Resource):
         if rawPost['status']=='published':
             es.update(index='groups_'+cluster_id,doc_type='group',id=int(group_id),body={'doc':rawPost,'doc_as_upsert':True})
         else:
-            es.delete(index='groups_'+cluster_id,doc_type='group',id=int(group_id))
+            try:
+                es.delete(index='groups_'+cluster_id,doc_type='group',id=int(group_id))
+            except NotFoundError:
+                print("Group not found for delete: "+group_id)
+                pass
 
-        return json.dumps({"ok": True})
-
-class PolicyGameList(Resource):
-    def post(self, cluster_id, policy_game_id):
-        print("Call for: POST /policy_games")
-        parser.add_argument('name')
-        parser.add_argument('language')
-        rawPost = parser.parse_args()
-        language = rawPost['language'][:2]
-        language = language.lower()
-        rawPost['language']=language
-        print(rawPost)
-        es.update(index='policy_games_'+cluster_id,doc_type='policyGame',id=int(policy_game_id),body={'doc':rawPost,'doc_as_upsert':True})
         return json.dumps({"ok": True})
 
 class PostList(Resource):
@@ -207,18 +207,25 @@ class PostList(Resource):
         if rawPost['status']=='published':
             if (len(rawPost.get("description"))>MIN_CHARACTER_LENGTH_FOR_PROCESSING):
                 print("len: "+str(len(rawPost.get("description")))+" words: "+str(len(rawPost.get("description").split())))
-                esPost = convertToNumbersWhereNeeded(rawPost)
-                esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"]+" "+esPost["description"], esPost.get("language"))
-                print(esPost.get('name'))
-                if (esPost.get("lemmatizedContent")!=None and len(esPost.get("lemmatizedContent"))>0):
-                    es.update(index='posts_'+cluster_id,doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
-                    self.triggerTrainingUpdate(cluster_id, rawPost)
-                else:
-                    print("NO DESCRIPTION FOR POST")
             else:
+                rawPost['tooShort']=True
                 print("TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_PROCESSING)+ " current: "+str(len(rawPost.get("description"))))
+
+            esPost = convertToNumbersWhereNeeded(rawPost)
+            esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"]+" "+esPost["description"], esPost.get("language"))
+            print(esPost.get('name'))
+            if (esPost.get("lemmatizedContent")!=None and len(esPost.get("lemmatizedContent"))>0):
+                self.triggerTrainingUpdate(cluster_id, rawPost)
+            else:
+                esPost['noDescription']=True
+                print("NO DESCRIPTION FOR POST")
+            es.update(index='posts_'+cluster_id,doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
         else:
-            es.delete(index='posts_'+cluster_id,doc_type='post',id=post_id)
+            try:
+                es.delete(index='posts_'+cluster_id,doc_type='post',id=post_id)
+            except NotFoundError:
+                print("Post not found for delete: "+post_id)
+                pass
             self.triggerTrainingUpdate(cluster_id, rawPost)
         return json.dumps({"ok": True})
 
@@ -297,7 +304,11 @@ class PointList(Resource):
             es.update(index='points_'+cluster_id,doc_type='point',id=point_id,body={'doc':esPoint,'doc_as_upsert':True})
             self.triggerTrainingUpdate(cluster_id, rawPoint)
         else:
-            es.delete(index='points_'+cluster_id,doc_type='point',id=point_id)
+            try:
+                es.delete(index='points_'+cluster_id,doc_type='point',id=point_id)
+            except NotFoundError:
+                print("Point not found for delete: "+point_id)
+                pass
             self.triggerTrainingUpdate(cluster_id, rawPoint)
 
         return json.dumps({"ok": True})
