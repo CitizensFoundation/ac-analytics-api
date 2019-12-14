@@ -295,7 +295,7 @@ class PointList(Resource):
         parser.add_argument('value')
         parser.add_argument('language')
         rawPoint = parser.parse_args()
-        print(rawPoint)
+        #print(rawPoint)
         language = rawPoint['language'][:2]
         language = language.lower()
         rawPoint['language']=language
