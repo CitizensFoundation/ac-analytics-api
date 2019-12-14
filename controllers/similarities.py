@@ -65,7 +65,7 @@ queue = Queue(connection=conn)
 def convertToNumbersWhereNeeded(inDict):
     outDict = {}
     for name, value in inDict.items():
-        if ("_id" in name):
+        if ("_id" in name and value!=None):
             outDict[name]=int(value)
         elif ("counter" in name):
             if (value==None):
