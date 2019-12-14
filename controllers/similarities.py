@@ -22,7 +22,7 @@ import sys
 from threading import Timer
 
 from flask import jsonify
-from flask_restful import reqparse
+from flask_restful import reqparse, Resource
 
 from rq import Queue
 from rq.job import Job
