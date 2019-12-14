@@ -289,7 +289,7 @@ class PointList(Resource):
         print(rawPoint)
         language = rawPoint['language'][:2]
         language = language.lower()
-        rawPost['language']=language
+        rawPoint['language']=language
 
         if rawPoint['status']=='published' and rawPoint['post_status']=='published':
             esPoint = convertToNumbersWhereNeeded(rawPoint)
