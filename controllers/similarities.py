@@ -167,7 +167,7 @@ class PostList(Resource):
         if (group_id!=None):
             PostList.triggerPostGroupQueueTimer[group_id]=None;
 
-    def triggerTrainingUpdate(self, rawPost, cluster_id):
+    def triggerTrainingUpdate(self, cluster_id, rawPost):
         if PostList.triggerPostDomainQueueTimer.get(rawPost.domain_id)==None:
             PostList.triggerPostDomainQueueTimer[rawPost.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPostTriggerQueue, [cluster_id, rawPost.domain_id, None, None])
             PostList.triggerPostDomainQueueTimer[rawPost.domain_id].start()
