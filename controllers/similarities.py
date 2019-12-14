@@ -203,7 +203,7 @@ class PostList(Resource):
         language = rawPost['language'][:2]
         language = language.lower()
         rawPost['language']=language
-        #print(rawPost)
+        print(rawPost)
         if rawPost['status']=='published':
             if (len(rawPost.get("description"))>MIN_CHARACTER_LENGTH_FOR_PROCESSING):
                 print("len: "+str(len(rawPost.get("description")))+" words: "+str(len(rawPost.get("description").split())))
