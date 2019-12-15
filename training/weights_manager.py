@@ -110,7 +110,7 @@ class WeightsManager:
     #self.model.docvecs.vectors_docs_norm = None
     #self.model.docvecs.init_sims()
     try:
-      most_similar = self.model.docvecs.most_similar([textId], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
+      most_similar = self.model.docvecs.most_similar([int(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
     except Exception as e:
       print(e)
       return
