@@ -1,5 +1,6 @@
 from gensim.models import Word2Vec
 from reynir.bincompress import BIN_Compressed
+from reynir import Reynir
 import regex as re
 from nltk.tokenize import sent_tokenize, word_tokenize
 
