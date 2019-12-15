@@ -113,7 +113,7 @@ class WeightsManager:
     #print(most_similar)
     for similarId,similarWeight in most_similar:
       print("MOST sim id: "+similarId)
-      print("MOST w: "+similarWeight)
+      print("MOST w: "+str(similarWeight))
       if float(similarWeight)>CUTTOFF_FOR_SAVING_WEIGTHS:
         if int(textId)<=int(similarId):
           source=textId
