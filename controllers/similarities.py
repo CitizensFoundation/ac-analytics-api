@@ -214,7 +214,6 @@ class PostList(Resource):
 
             esPost = convertToNumbersWhereNeeded(rawPost)
             esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"]+" "+esPost["description"], esPost.get("language"))
-            print(esPost.get('name'))
             if (esPost.get("lemmatizedContent")!=None and len(esPost.get("lemmatizedContent"))>0):
                 self.triggerTrainingUpdate(cluster_id, rawPost)
             else:
