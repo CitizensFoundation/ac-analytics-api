@@ -131,7 +131,7 @@ class WeightsManager:
         print("Saved item with weight: "+str(similarWeight))
         es.update(index="similarityweights_"+self.object["cluster_id"],doc_type='similarityweight',id=id,body={'doc':body,'doc_as_upsert':True})
       else:
-        print("Item not saved with low weight: "+similarWeight)
+        print("Item not saved with low weight: "+str(similarWeight))
 
   def countLinks(self, links, nodeId):
     count = 0
