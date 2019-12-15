@@ -18,6 +18,7 @@ def triggerPointTraining(type, object):
 def triggerArticleTraining(type, object):
   print("triggerArticleTraining")
   trainer = TrainingManager("articles_"+object["cluster_id"],"article",object)
-  trainer.start()
-  weights = WeightsManager("articles_"+object["cluster_id"],"article",object,trainer.model)
-  weights.startProcessing()
+  trained = trainer.start()
+  if trained:
+    weights = WeightsManager("articles_"+object["cluster_id"],"article",object,trainer.model)
+    weights.startProcessing()

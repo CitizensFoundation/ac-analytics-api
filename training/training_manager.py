@@ -83,7 +83,12 @@ class TrainingManager:
     print(texts)
     print("IDS")
     print(ids)
-    d2v = TrainDoc2Vec(self.filename_prefix, texts, ids)
-    d2v.train()
-    self.model = d2v.model
-    print("Training done for: "+self.filename_prefix)
+    if ids and texts and ids.length>0 and texts.length>0:
+      d2v = TrainDoc2Vec(self.filename_prefix, texts, ids)
+      d2v.train()
+      self.model = d2v.model
+      print("Training done for: "+self.filename_prefix)
+      return True
+    else:
+      print("Warning: no texts for training, skipping")
+      return False

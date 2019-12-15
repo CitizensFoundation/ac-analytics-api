@@ -213,7 +213,7 @@ class PostList(Resource):
                 esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"]+" "+esPost["description"], esPost.get("language"))
             else:
                 esPost['tooShort']=True
-                print("Warning: TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_PROCESSING)+ " current: "+str(len(rawPost.get("description"))))
+                print("Warning: POST TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_PROCESSING)+ " current: "+str(len(rawPost.get("description"))))
 
             if (esPost.get("lemmatizedContent")!=None and len(esPost.get("lemmatizedContent"))>0):
                 self.triggerTrainingUpdate(cluster_id, rawPost)
@@ -307,13 +307,13 @@ class PointList(Resource):
                 esPoint["lemmatizedContent"]=getLemmatizedText(esPoint["content"], esPoint.get("language"))
             else:
                 esPoint['tooShort']=True
-                print("TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING)+ " current: "+str(len(esPoint.get("content"))))
+                print("Warning: POINT TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING)+ " current: "+str(len(esPoint.get("content"))))
 
             if (esPoint.get("lemmatizedContent")!=None and len(esPoint.get("lemmatizedContent"))>0):
                 self.triggerPointTrainingUpdate(cluster_id, rawPoint)
             else:
                 esPoint['noLemmatizedContent']=True
-                print("NO DESCRIPTION FOR POST")
+                print("Warning: NO CONTENT FOR POINT")
 
             es.update(index='points_'+cluster_id,doc_type='point',id=point_id,body={'doc':esPoint,'doc_as_upsert':True})
         else:
