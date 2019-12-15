@@ -8,7 +8,6 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 # Structure: [file[sent[lemmas]]]
 def getLemmatizedTextIS(text):
   lemmas = ' '.join(lemmatizeParse(text))
-  lemmas = lemmas.replace(' ,',',').replace(' .','.')
   return lemmas
 
 def lemmatizeParse(text):
