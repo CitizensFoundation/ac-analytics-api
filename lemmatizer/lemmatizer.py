@@ -21,7 +21,7 @@ def getLemmatizedText(text, language):
       print(language.upper())
   else:
     outText = text.lower().replace('.','.')
-    print("ERROR: No language for Lemmatizing text)
+    print("ERROR: No language for Lemmatizing text")
   cleaned = re.sub(' +', ' ',outText)
   cleaned = cleaned.replace('\n', '')
   cleaned = cleaned.replace('\r', '')
