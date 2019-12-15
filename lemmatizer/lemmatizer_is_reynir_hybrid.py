@@ -1,6 +1,6 @@
 from gensim.models import Word2Vec
 from reynir.bincompress import BIN_Compressed
-from reynir import Reynir
+from reynir import Reynir, AttributeError
 import regex as re
 from nltk.tokenize import sent_tokenize, word_tokenize
 
@@ -19,7 +19,10 @@ def lemmatizeParse(text):
   sents = reynir.parse(text)
   for sent in sents['sentences']:
       try:
-          lemmas.append(' '.join(sent.lemmas))
+          if sent.lemmas==None:
+            raise AttributeError()
+          else:
+            lemmas.append(' '.join(sent.lemmas))
       except AttributeError:
           print("Warning: lemmatize AttributeError from Reynir, using: "+str(sent))
           #TODO: CHECK HACKY LINE BELOW RVB
@@ -39,5 +42,4 @@ def lemmatizeParse(text):
           pass
 
   return lemmas
-
 
