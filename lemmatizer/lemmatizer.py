@@ -25,5 +25,5 @@ def getLemmatizedText(text, language):
   cleaned = re.sub(' +', ' ',outText)
   cleaned = cleaned.replace('\n', '')
   cleaned = cleaned.replace('\r', '')
-  #print("Lemmatized: "+cleaned)
+  print("Lemmatized CLEAN: "+cleaned)
   return cleaned
