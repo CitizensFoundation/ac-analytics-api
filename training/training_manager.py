@@ -79,8 +79,10 @@ class TrainingManager:
 
   def start(self):
     texts, ids = self.getAllTextFromES()
-    #print(texts)
-    #print(ids)
+    print("TEXTS")
+    print(texts)
+    print("IDS")
+    print(ids)
     d2v = TrainDoc2Vec(self.filename_prefix, texts, ids)
     d2v.train()
     self.model = d2v.model
