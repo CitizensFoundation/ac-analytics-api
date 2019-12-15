@@ -216,8 +216,6 @@ class PostList(Resource):
                 print("Warning: TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_PROCESSING)+ " current: "+str(len(rawPost.get("description"))))
 
             if (esPost.get("lemmatizedContent")!=None and len(esPost.get("lemmatizedContent"))>0):
-                print(rawPoint)
-                print(esPoint)
                 self.triggerTrainingUpdate(cluster_id, rawPost)
             else:
                 print("Warning: NO DESCRIPTION FOR POST")
@@ -312,6 +310,8 @@ class PointList(Resource):
                 print("TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING)+ " current: "+str(len(esPoint.get("content"))))
 
             if (esPoint.get("lemmatizedContent")!=None and len(esPoint.get("lemmatizedContent"))>0):
+                print(rawPoint)
+                print(esPoint)
                 self.triggerPointTrainingUpdate(cluster_id, esPoint)
             else:
                 esPost['noLemmatizedContent']=True
