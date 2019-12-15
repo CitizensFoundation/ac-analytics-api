@@ -60,7 +60,7 @@ def before_request():
     headers = request.headers
     auth = headers.get("X-API-KEY")
     if (auth!=master_api_key):
-        return jsonify({"message": "ERROR: Unauthorized"}), 401
+        return jsonify({"message": "ERROR: You are not authorized"}), 401
 
 if (len(sys.argv)>1):
     if (sys.argv[1]=="deleteAllIndexesES"):

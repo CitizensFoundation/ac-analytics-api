@@ -12,18 +12,18 @@ def getLemmatizedText(text, language):
   if (language):
     if (language=="en"):
       outText = getLemmatizedTextEN(text)
-      #print("Lemmatized EN: "+outText)
+      print("Lemmatized EN: "+outText)
     elif (language=="is"):
       outText = getLemmatizedTextIS(text)
       print("Lemmatized IS: "+outText)
     else:
       outText = text.lower().replace('.','.')
-      print("WARNING: Could not find Lemmatizer for language: "+language+" text "+text)
+      print("warning: No Lemmatizer for language: "+language+" text "+text)
   else:
     outText = text.lower().replace('.','.')
     print("ERROR: No language for Lemmatizing text: "+text)
   cleaned = re.sub(' +', ' ',outText)
   cleaned = cleaned.replace('\n', '')
   cleaned = cleaned.replace('\r', '')
-  print("Lemmatized: "+cleaned)
+  #print("Lemmatized: "+cleaned)
   return cleaned

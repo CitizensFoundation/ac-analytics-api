@@ -8,6 +8,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 # Structure: [file[sent[lemmas]]]
 def getLemmatizedTextIS(text):
   lemmas = ' '.join(lemmatizeParse(text))
+  lemmas = lemmas.replace(' ,',',').replace(' .','.')
   return lemmas
 
 def lemmatizeParse(text):
@@ -18,9 +19,9 @@ def lemmatizeParse(text):
   sents = reynir.parse(text)
   for sent in sents['sentences']:
       try:
-          lemmas.append(' '.join(sent.tree.lemmas))
+          lemmas.append(' '.join(sent.lemmas))
       except AttributeError:
-          print("Warning: lemmatize AttributeError, adding raw: "+str(sent))
+          print("Warning: lemmatize AttributeError from Reynir, using: "+str(sent))
           #TODO: CHECK HACKY LINE BELOW RVB
           sent = str(sent)
           bin = BIN_Compressed()
@@ -36,6 +37,7 @@ def lemmatizeParse(text):
 
           lemmas.append(' '.join(bin_lemmas))
           pass
+
   return lemmas
 
 
