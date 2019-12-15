@@ -312,7 +312,7 @@ class PointList(Resource):
             if (esPoint.get("lemmatizedContent")!=None and len(esPoint.get("lemmatizedContent"))>0):
                 self.triggerPointTrainingUpdate(cluster_id, rawPoint)
             else:
-                esPost['noLemmatizedContent']=True
+                esPoint['noLemmatizedContent']=True
                 print("NO DESCRIPTION FOR POST")
 
             es.update(index='points_'+cluster_id,doc_type='point',id=point_id,body={'doc':esPoint,'doc_as_upsert':True})
