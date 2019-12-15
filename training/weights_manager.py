@@ -111,6 +111,8 @@ class WeightsManager:
     most_similar = self.model.docvecs.most_similar([str(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
     #print(most_similar)
     for similarId,similarWeight in most_similar:
+      print("MOST sim id: "+similarId)
+      print("MOST w: "+similarWeight)
       if float(similarWeight)>CUTTOFF_FOR_SAVING_WEIGTHS:
         if int(textId)<=int(similarId):
           source=textId
