@@ -171,8 +171,9 @@ class WeightsManager:
     for id in ids:
       try:
         self.processSimilarity(str(id))
-      except:
+      except Exception as e:
         print("ERROR: processSimilarity for "+str(id))
+        print(e)
         pass
       i+=1
     print("Completed create weights")
