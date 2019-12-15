@@ -45,6 +45,7 @@ es_url = os.environ['AC_ANALYTICS_ES_URL'] if os.environ.get('AC_ANALYTICS_ES_UR
 master_api_key = os.environ['AC_ANALYTICS_MASTER_API_KEY']
 
 MIN_CHARACTER_LENGTH_FOR_PROCESSING=50
+MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING=40
 
 #DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=24*60*60
 #COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=1*60*60
@@ -208,17 +209,16 @@ class PostList(Resource):
         if rawPost['status']=='published':
             esPost = convertToNumbersWhereNeeded(rawPost)
             if (len(rawPost.get("description"))>MIN_CHARACTER_LENGTH_FOR_PROCESSING):
-                print("len: "+str(len(rawPost.get("description")))+" words: "+str(len(rawPost.get("description").split())))
+                print("Post len: "+str(len(rawPost.get("description")))+" words: "+str(len(rawPost.get("description").split())))
                 esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"]+" "+esPost["description"], esPost.get("language"))
             else:
-                rawPost['tooShort']=True
-                print("TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_PROCESSING)+ " current: "+str(len(rawPost.get("description"))))
+                esPost['tooShort']=True
+                print("Warning: TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_PROCESSING)+ " current: "+str(len(rawPost.get("description"))))
 
             if (esPost.get("lemmatizedContent")!=None and len(esPost.get("lemmatizedContent"))>0):
                 self.triggerTrainingUpdate(cluster_id, rawPost)
             else:
-                esPost['noLemmatizedContent']=True
-                print("NO DESCRIPTION FOR POST")
+                print("Warning: NO DESCRIPTION FOR POST")
             es.update(index='posts_'+cluster_id,doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
         else:
             try:
@@ -301,9 +301,21 @@ class PointList(Resource):
 
         if rawPoint['status']=='published' and rawPoint['post_status']=='published':
             esPoint = convertToNumbersWhereNeeded(rawPoint)
-            esPoint["lemmatizedContent"]=getLemmatizedText(esPoint["content"], esPoint.get("language"))
+
+            if (len(esPoint.get("content"))>MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING):
+                print("Point len: "+str(len(esPoint.get("content")))+" words: "+str(len(esPoint.get("content").split())))
+                esPoint["lemmatizedContent"]=getLemmatizedText(esPoint["content"], esPoint.get("language"))
+            else:
+                esPoint['tooShort']=True
+                print("TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING)+ " current: "+str(len(esPoint.get("content"))))
+
+            if (esPoint.get("lemmatizedContent")!=None and len(esPoint.get("lemmatizedContent"))>0):
+                self.triggerPointTrainingUpdate(cluster_id, esPoint)
+            else:
+                esPost['noLemmatizedContent']=True
+                print("NO DESCRIPTION FOR POST")
+
             es.update(index='points_'+cluster_id,doc_type='point',id=point_id,body={'doc':esPoint,'doc_as_upsert':True})
-            self.triggerPointTrainingUpdate(cluster_id, rawPoint)
         else:
             try:
                 es.delete(index='points_'+cluster_id,doc_type='point',id=point_id)
