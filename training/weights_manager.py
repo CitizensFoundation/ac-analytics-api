@@ -113,6 +113,7 @@ class WeightsManager:
       most_similar = self.model.docvecs.most_similar([textId], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
     except Exception as e:
       print(e)
+      return
     #print(most_similar)
     for similarId,similarWeight in most_similar:
       print("MOST sim id: "+similarId)
