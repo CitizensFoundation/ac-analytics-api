@@ -3,6 +3,7 @@ from training.training_prefix import makeTrainingPrefix
 from gensim.models.doc2vec import Doc2Vec
 import json
 import os
+import traceback
 
 MAX_NUMBER_OF_SIMILAR_DOCUMENTS=20
 #CUTTOFF_FOR_WEIGTHS=0.75
@@ -176,6 +177,7 @@ class WeightsManager:
       except Exception as e:
         print("ERROR: processSimilarity for "+str(id))
         print(e)
+        traceback.print_exc()
         pass
       i+=1
     print("Completed create weights")
