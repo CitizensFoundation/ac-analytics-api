@@ -68,11 +68,11 @@ class TrainingManager:
       itemText = ""
       if (item["_source"].get("lemmatizedContent")):
         itemText+=item["_source"].get("lemmatizedContent")
+        outItemTexts.append(itemText)
+        outItemIds.append(str(item["_id"]))
         #print("SCORE: "+item["_source"].get("lemmatizedContent"))
       else:
-        print("ERROR: did not find lemmatized text for item")
-      outItemTexts.append(itemText)
-      outItemIds.append(str(item["_id"]))
+        print("Warning: did not find lemmatizedContent for item")
     #print(outItemTexts)
     #print(outItemIds)
     return [outItemTexts, outItemIds]

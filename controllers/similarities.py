@@ -206,18 +206,18 @@ class PostList(Resource):
         rawPost['language']=language
         #print(rawPost)
         if rawPost['status']=='published':
+            esPost = convertToNumbersWhereNeeded(rawPost)
             if (len(rawPost.get("description"))>MIN_CHARACTER_LENGTH_FOR_PROCESSING):
                 print("len: "+str(len(rawPost.get("description")))+" words: "+str(len(rawPost.get("description").split())))
+                esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"]+" "+esPost["description"], esPost.get("language"))
             else:
                 rawPost['tooShort']=True
                 print("TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_PROCESSING)+ " current: "+str(len(rawPost.get("description"))))
 
-            esPost = convertToNumbersWhereNeeded(rawPost)
-            esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"]+" "+esPost["description"], esPost.get("language"))
             if (esPost.get("lemmatizedContent")!=None and len(esPost.get("lemmatizedContent"))>0):
                 self.triggerTrainingUpdate(cluster_id, rawPost)
             else:
-                esPost['noDescription']=True
+                esPost['noLemmatizedContent']=True
                 print("NO DESCRIPTION FOR POST")
             es.update(index='posts_'+cluster_id,doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
         else:

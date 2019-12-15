@@ -7,6 +7,7 @@ import os
 MAX_NUMBER_OF_SIMILAR_DOCUMENTS=20
 #CUTTOFF_FOR_WEIGTHS=0.75
 CUTTOFF_FOR_WEIGTHS=0.63
+CUTTOFF_FOR_SAVING_WEIGTHS=0.33
 
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
 es = Elasticsearch(es_url)
@@ -110,21 +111,24 @@ class WeightsManager:
     most_similar = self.model.docvecs.most_similar([str(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
     #print(most_similar)
     for similarId,similarWeight in most_similar:
-      if int(textId)<=int(similarId):
-        source=textId
-        target=similarId
+      if float(similarWeight)>CUTTOFF_FOR_SAVING_WEIGTHS:
+        if int(textId)<=int(similarId):
+          source=textId
+          target=similarId
+        else:
+          source=similarId
+          target=textId
+        body = {
+          "source": source,
+          "target": target,
+          "value":  similarWeight,
+          "indexType": self.weightIndexType
+        }
+        id=source+"_"+target+"_"+self.weightIndexType
+        print("Saved item with weight: "+similarWeight)
+        es.update(index="similarityweights_"+self.object["cluster_id"],doc_type='similarityweight',id=id,body={'doc':body,'doc_as_upsert':True})
       else:
-        source=similarId
-        target=textId
-      body = {
-        "source": source,
-        "target": target,
-        "value":  similarWeight,
-        "indexType": self.weightIndexType
-      }
-      id=source+"_"+target+"_"+self.weightIndexType
-      #print(similarWeight)
-      es.update(index="similarityweights_"+self.object["cluster_id"],doc_type='similarityweight',id=id,body={'doc':body,'doc_as_upsert':True})
+        print("Item not saved with low weight: "+similarWeight)
 
   def countLinks(self, links, nodeId):
     count = 0
