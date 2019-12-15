@@ -109,7 +109,10 @@ class WeightsManager:
     #TODO: Confirm if this is needed https://github.com/RaRe-Technologies/gensim/issues/2260
     #self.model.docvecs.vectors_docs_norm = None
     #self.model.docvecs.init_sims()
-    most_similar = self.model.docvecs.most_similar([str(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
+    try:
+      most_similar = self.model.docvecs.most_similar([textId], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
+    except Exception as e:
+      print(e)
     #print(most_similar)
     for similarId,similarWeight in most_similar:
       print("MOST sim id: "+similarId)
