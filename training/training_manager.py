@@ -83,7 +83,7 @@ class TrainingManager:
     print(texts)
     print("IDS")
     print(ids)
-    if ids and texts and ids.length>0 and texts.length>0:
+    if ids and texts and len(ids)>0 and len(texts)>0:
       d2v = TrainDoc2Vec(self.filename_prefix, texts, ids)
       d2v.train()
       self.model = d2v.model
