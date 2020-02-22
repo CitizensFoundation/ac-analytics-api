@@ -38,6 +38,10 @@ from training.weights_manager import WeightsManager
 
 from controllers.similarities import PostList, PointList, DomainList, CommunityList, GroupList, FindSimilarPosts
 from controllers.similarities import GetCommunityPostsWithWeights, GetGroupPostsWithWeights, GetDomainPostsWithWeights, GetPostPointsWithWeights
+from controllers.similarities import TriggerDomainPostTraining, TriggerCommunityPostTraining, TriggerGroupPostTraining, TriggerPostPointsTraining
+
+from controllers.wordcloud import GetCommunityWordCloud, GetDomainWordCloud, GetGroupWordCloud, GetPostWordCloud
+
 
 if os.environ.get('AC_ANALYTICS_API_URL'):
     api_url = os.environ['AC_ANALYTICS_API_URL']
@@ -63,7 +67,7 @@ def before_request():
         return jsonify({"message": "ERROR: You are not authorized"}), 401
 
 if (len(sys.argv)>1):
-    if (sys.argv[1]=="deleteAllIndexesES"):
+    if (sys.argv[1]=="deleteAllIndexesESger32jh8"):
         if es.indices.exists("posts"):
            es.indices.delete("posts")
         if es.indices.exists("points"):
@@ -88,11 +92,25 @@ api.add_resource(PointList, api_url+'/points/<cluster_id>/<point_id>')
 api.add_resource(DomainList, api_url+'/domains/<cluster_id>/<domain_id>')
 api.add_resource(CommunityList, api_url+'/communities/<cluster_id>/<community_id>')
 api.add_resource(GroupList, api_url+'/groups/<cluster_id>/<group_id>')
+
 api.add_resource(FindSimilarPosts, api_url+'/find_similar_posts/<cluster_id>')
-api.add_resource(GetCommunityPostsWithWeights, api_url+'/getCommunityPostsWithWeights/<cluster_id><community_id>')
-api.add_resource(GetGroupPostsWithWeights, api_url+'/getGroupPostsWithWeights/<cluster_id>/<group_id>')
-api.add_resource(GetDomainPostsWithWeights, api_url+'/getDomainPostsWithWeights/<cluster_id>/<domain_id>')
-api.add_resource(GetPostPointsWithWeights, api_url+'/GetPostPointsWithWeights/<cluster_id>/<post_id>')
+
+api.add_resource(GetCommunityPostsWithWeights, api_url+'/similarities_weights/community/<cluster_id>/<community_id>')
+api.add_resource(GetGroupPostsWithWeights, api_url+'/similarities_weights/group/<cluster_id>/<group_id>')
+api.add_resource(GetDomainPostsWithWeights, api_url+'/similarities_weights/domain/<cluster_id>/<domain_id>')
+api.add_resource(GetPostPointsWithWeights, api_url+'/similarities_weights/post/<cluster_id>/<post_id>')
+
+api.add_resource(GetPostWordCloud, api_url+'/wordclouds/post/<cluster_id>/<post_id>')
+api.add_resource(GetGroupWordCloud, api_url+'/wordclouds/group/<cluster_id>/<group_id>')
+api.add_resource(GetCommunityWordCloud, api_url+'/wordclouds/community/<cluster_id>/<community_id>')
+api.add_resource(GetDomainWordCloud, api_url+'/wordclouds/domain/<cluster_id>/<domain_id>')
+
+api.add_resource(TriggerDomainPostTraining, api_url+'/trigger_similarities_training/domain/<cluster_id>/<domain_id>')
+api.add_resource(TriggerCommunityPostTraining, api_url+'/trigger_similarities_training/community/<cluster_id>/<community_id>')
+api.add_resource(TriggerGroupPostTraining, api_url+'/trigger_similarities_training/group/<cluster_id>/<group_id>')
+
+api.add_resource(TriggerPostPointsTraining, api_url+'/trigger_similarities_training/post/<cluster_id>/<post_id>')
+
 
 # Anonymized export APIs
 

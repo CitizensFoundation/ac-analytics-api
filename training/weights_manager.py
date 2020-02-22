@@ -7,7 +7,7 @@ import traceback
 
 MAX_NUMBER_OF_SIMILAR_DOCUMENTS=20
 #CUTTOFF_FOR_WEIGTHS=0.75
-CUTTOFF_FOR_WEIGTHS=0.63
+CUTTOFF_FOR_WEIGTHS=0.45
 CUTTOFF_FOR_SAVING_WEIGTHS=0.33
 
 es_url = os.environ['AC_SIM_ES_URL'] if os.environ.get('AC_SIM_ES_URL')!=None else 'localhost:9200'
@@ -44,7 +44,7 @@ class WeightsManager:
       self.colletionIndexDocType = "policy_game"
       self.collectionIndexSearchId = int(object["policy_game_id"])
 
-    res = es.get(index=self.collectionIndexName, doc_type=self.colletionIndexDocType, id=self.collectionIndexSearchId)
+    res = es.get(index=self.collectionIndexName,  id=self.collectionIndexSearchId)
     self.language = res['_source']['language']
     self.weightIndexType = "weights_"+makeTrainingPrefix(self.language, indexName, object)
     self.modelFilePrefix = makeTrainingPrefix(self.language, indexName, object)
@@ -87,6 +87,9 @@ class WeightsManager:
         }
     }
     #TODO A cursor for larger results
+    print(moreThanLimit)
+    print(indexTypeDict)
+    print(self.object["cluster_id"])
     return es.search(index="similarityweights_"+self.object["cluster_id"], body=body, size=10*1000)
 
   def deleteWeightsFromES(self):
@@ -106,12 +109,14 @@ class WeightsManager:
 
   def processSimilarity(self, textId):
     print("MOST SIMILAR FOR: "+str(textId))
+
     #TODO: Confirm if this is needed https://github.com/RaRe-Technologies/gensim/issues/2260
     #self.model.docvecs.vectors_docs_norm = None
     #self.model.docvecs.init_sims()
     try:
-      most_similar = self.model.docvecs.most_similar([int(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
+      most_similar = self.model.docvecs.most_similar([str(textId)], topn = MAX_NUMBER_OF_SIMILAR_DOCUMENTS)
     except Exception as e:
+      print("DOC2VEC: error")
       print(e)
       return
     #print(most_similar)
@@ -133,7 +138,7 @@ class WeightsManager:
         }
         id=source+"_"+target+"_"+self.weightIndexType
         print("Saved item with weight: "+str(similarWeight))
-        es.update(index="similarityweights_"+self.object["cluster_id"],doc_type='similarityweight',id=id,body={'doc':body,'doc_as_upsert':True})
+        es.update(index="similarityweights_"+self.object["cluster_id"],id=id,body={'doc':body,'doc_as_upsert':True})
       else:
         print("Item not saved with low weight: "+str(similarWeight))
 
@@ -160,13 +165,15 @@ class WeightsManager:
       outNodes.append(
         {
           "id": node["_id"],
-          "group": node["_source"]["group_id"],
-          "name": node["_source"]["name"],
-          "imageUrl": node["_source"]["imageUrl"],
-          "counter_endorsements_down": node["_source"]["counter_endorsements_down"],
-          "counter_endorsements_up": node["_source"]["counter_endorsements_up"],
+          "group": node["_source"].get("group_id"),
+          "postId": node["_source"].get("post_id"),
+          "name": node["_source"].get("name"),
+          "content": node["_source"].get("content"),
+          "imageUrl": node["_source"].get("imageUrl"),
+          "counter_endorsements_down": node["_source"].get("counter_endorsements_down"),
+          "counter_endorsements_up": node["_source"].get("counter_endorsements_up"),
           "linkCount": self.countLinks(outLinks, node["_id"]),
-          "lemmatizedContent": node["_source"]["lemmatizedContent"]
+          "lemmatizedContent": node["_source"].get("lemmatizedContent")
         }
       )
     return {"nodes": outNodes, "links": outLinks }

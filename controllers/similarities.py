@@ -259,6 +259,7 @@ class PointList(Resource):
             PointList.triggerPointPostQueueTimer[post_id]=None;
 
     def triggerPointTrainingUpdate(self, cluster_id, rawPoint):
+        print("Triggering triggerPointTrainingUpdate")
         if PointList.triggerPointDomainQueueTimer.get(rawPoint.domain_id)==None:
             PointList.triggerPointDomainQueueTimer[rawPoint.domain_id] = Timer(DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC, self.addToPointTriggerQueue, [cluster_id, rawPoint.domain_id, None, None, None])
             PointList.triggerPointDomainQueueTimer[rawPoint.domain_id].start()
@@ -365,3 +366,44 @@ class GetPostPointsWithWeights(Resource):
     def get(self, cluster_id, post_id):
         weights = WeightsManager("points_"+cluster_id,"point",{"post_id": post_id, "cluster_id": cluster_id}, None)
         return jsonify(weights.getNodesAndLinksFromES())
+
+class TriggerDomainPostTraining(Resource):
+    def put(self, cluster_id, domain_id):
+        queue.enqueue_call(
+            func=triggerPostTraining, args=("posts", {
+                "cluster_id": cluster_id,
+                "domain_id": domain_id,
+                "community_id": None,
+                "group_id": None,
+                }), result_ttl=1*60*60*1000)
+
+class TriggerCommunityPostTraining(Resource):
+    def put(self, cluster_id, community_id):
+        queue.enqueue_call(
+            func=triggerPostTraining, args=("posts", {
+                "cluster_id": cluster_id,
+                "domain_id": None,
+                "community_id": community_id,
+                "group_id": None,
+                }), result_ttl=1*60*60*1000)
+
+class TriggerGroupPostTraining(Resource):
+    def put(self, cluster_id, group_id):
+        queue.enqueue_call(
+            func=triggerPostTraining, args=("posts", {
+                "cluster_id": cluster_id,
+                "domain_id": None,
+                "community_id": None,
+                "group_id": group_id,
+                }), result_ttl=1*60*60*1000)
+
+class TriggerPostPointsTraining(Resource):
+    def put(self, cluster_id, post_id):
+        queue.enqueue_call(
+            func=triggerPostTraining, args=("points", {
+                "cluster_id": cluster_id,
+                "domain_id": None,
+                "community_id": None,
+                "group_id": None,
+                "post_id": post_id
+                }), result_ttl=1*60*60*1000)

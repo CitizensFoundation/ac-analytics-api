@@ -16,28 +16,28 @@ class TrainingManager:
       self.collectionIndexName = "domains_"+object["cluster_id"]
       self.colletionIndexDocType = "domain"
       self.collectionIndexSearchId = int(object["domain_id"])
-    elif (object["community_id"] != None):
+    elif (object.get("community_id") != None):
       self.searchTerms = {"community_id": int(object["community_id"])}
       self.collectionIndexName = "communities_"+object["cluster_id"]
       self.colletionIndexDocType = "community"
       self.collectionIndexSearchId = int(object["community_id"])
-    elif (object["group_id"]):
+    elif (object.get("group_id")):
       self.searchTerms = {"group_id": int(object["group_id"])}
       self.collectionIndexName = "groups_"+object["cluster_id"]
       self.colletionIndexDocType = "group"
       self.collectionIndexSearchId = int(object["group_id"])
-    elif (object["post_id"]):
+    elif (object.get("post_id")):
       self.searchTerms = {"post_id": int(object["post_id"])}
       self.collectionIndexName = "posts_"+object["cluster_id"]
       self.colletionIndexDocType = "post"
       self.collectionIndexSearchId = int(object["post_id"])
-    elif (object["policy_game_id"]):
+    elif (object.get("policy_game_id")):
       self.searchTerms = {"policy_game_id": int(object["policy_game_id"])}
       self.collectionIndexName = "policy_games"
       self.colletionIndexDocType = "policy_game"
       self.collectionIndexSearchId = int(object["policy_game_id"])
 
-    res = es.get(index=self.collectionIndexName, doc_type=self.colletionIndexDocType, id=self.collectionIndexSearchId)
+    res = es.get(index=self.collectionIndexName, id=self.collectionIndexSearchId)
     #print(res['_source'])
     self.filename_prefix = makeTrainingPrefix(res['_source']['language'], indexName, object)
 
