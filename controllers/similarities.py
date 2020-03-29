@@ -32,7 +32,7 @@ from elasticsearch import Elasticsearch, NotFoundError
 from training.training import triggerPostTraining, triggerPointTraining, triggerArticleTraining
 from worker import conn
 from lemmatizer.lemmatizer import getLemmatizedText
-from simiarities.similarities import PostSimilarity
+from similarities.similarities import PostSimilarity
 from training.weights_manager import WeightsManager
 
 if os.environ.get('AC_ANALYTICS_API_URL'):

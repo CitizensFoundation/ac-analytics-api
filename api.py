@@ -33,7 +33,7 @@ from elasticsearch import Elasticsearch
 from training.training import triggerPostTraining, triggerPointTraining, triggerArticleTraining
 from worker import conn
 from lemmatizer.lemmatizer import getLemmatizedText
-from simiarities.similarities import PostSimilarity
+from similarities.similarities import PostSimilarity
 from training.weights_manager import WeightsManager
 
 from controllers.similarities import PostList, PointList, DomainList, CommunityList, GroupList, FindSimilarPosts
