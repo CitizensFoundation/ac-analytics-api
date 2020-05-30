@@ -46,8 +46,8 @@ es_url = os.environ['AC_ANALYTICS_ES_URL'] if os.environ.get('AC_ANALYTICS_ES_UR
 
 master_api_key = os.environ['AC_ANALYTICS_MASTER_API_KEY']
 
-MIN_CHARACTER_LENGTH_FOR_PROCESSING=50
-MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING=40
+MIN_CHARACTER_LENGTH_FOR_PROCESSING=20
+MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING=15
 
 #DOMAIN_TRIGGER_DEBOUNCE_TIME_SEC=24*60*60
 #COMMUNITY_TRIGGER_DEBOUNCE_TIME_SEC=1*60*60
@@ -91,10 +91,10 @@ class DomainList(Resource):
         rawPost['language']=language
         print(rawPost)
         if rawPost['status']=='published':
-            es.update(index='domains_'+cluster_id,doc_type='domain',id=int(domain_id),body={'doc':rawPost,'doc_as_upsert':True})
+            es.update(index='domains_'+cluster_id,id=int(domain_id),body={'doc':rawPost,'doc_as_upsert':True})
         else:
             try:
-                es.delete(index='domains_'+cluster_id,doc_type='domain',id=int(domain_id))
+                es.delete(index='domains_'+cluster_id,id=int(domain_id))
             except NotFoundError:
                 print("Domain not found for delete: "+domain_id)
                 pass
@@ -113,10 +113,10 @@ class CommunityList(Resource):
         rawPost['language']=language
         print(rawPost)
         if rawPost['status']=='published':
-            es.update(index='communities_'+cluster_id,doc_type='community',id=int(community_id),body={'doc':rawPost,'doc_as_upsert':True})
+            es.update(index='communities_'+cluster_id,id=int(community_id),body={'doc':rawPost,'doc_as_upsert':True})
         else:
             try:
-                es.delete(index='communities_'+cluster_id,doc_type='community',id=int(community_id))
+                es.delete(index='communities_'+cluster_id,id=int(community_id))
             except NotFoundError:
                 print("Community not found for delete: "+community_id)
                 pass
@@ -136,10 +136,10 @@ class GroupList(Resource):
         print(rawPost)
 
         if rawPost['status']=='published':
-            es.update(index='groups_'+cluster_id,doc_type='group',id=int(group_id),body={'doc':rawPost,'doc_as_upsert':True})
+            es.update(index='groups_'+cluster_id,id=int(group_id),body={'doc':rawPost,'doc_as_upsert':True})
         else:
             try:
-                es.delete(index='groups_'+cluster_id,doc_type='group',id=int(group_id))
+                es.delete(index='groups_'+cluster_id,id=int(group_id))
             except NotFoundError:
                 print("Group not found for delete: "+group_id)
                 pass
@@ -154,7 +154,7 @@ class PostList(Resource):
     def addToPostTriggerQueue(self, cluster_id, domain_id, community_id, group_id):
         print("addToPostTriggerQueue")
 
-        lockFilename = "/tmp/acaRqInQueuePosts_"+cluster_id+"_"+domain_id+"_"+community_id+"_"+group_id;
+        lockFilename = "/tmp/acaRqInQueuePosts_{}_{}_{}_{}".format(cluster_id, domain_id, community_id, group_id);
 
         if path.exists(lockFilename):
             print("Already in queue: "+lockFilename)
@@ -232,10 +232,10 @@ class PostList(Resource):
                 self.triggerTrainingUpdate(cluster_id, rawPost)
             else:
                 print("Warning: NO DESCRIPTION FOR POST")
-            es.update(index='posts_'+cluster_id,doc_type='post',id=post_id,body={'doc':esPost,'doc_as_upsert':True})
+            es.update(index='posts_'+cluster_id,id=post_id,body={'doc':esPost,'doc_as_upsert':True})
         else:
             try:
-                es.delete(index='posts_'+cluster_id,doc_type='post',id=post_id)
+                es.delete(index='posts_'+cluster_id,id=post_id)
             except NotFoundError:
                 print("Post not found for delete: "+post_id)
                 pass
@@ -251,7 +251,7 @@ class PointList(Resource):
     def addToPointTriggerQueue(self, cluster_id, domain_id, community_id, group_id, post_id):
         print("addToPointTriggerQueue")
 
-        lockFilename = "/tmp/acaRqInQueuePoints_"+cluster_id+"_"+domain_id+"_"+community_id+"_"+goup_id+"_"+post_id;
+        lockFilename = "/tmp/acaRqInQueuePosts_{}_{}_{}_{}_{}".format(cluster_id, domain_id, community_id, group_id, post_id);
 
         if path.exists(lockFilename):
             print("Already in queue: "+lockFilename)
@@ -339,10 +339,10 @@ class PointList(Resource):
                 esPoint['noLemmatizedContent']=True
                 print("Warning: NO CONTENT FOR POINT")
 
-            es.update(index='points_'+cluster_id,doc_type='point',id=point_id,body={'doc':esPoint,'doc_as_upsert':True})
+            es.update(index='points_'+cluster_id,id=point_id,body={'doc':esPoint,'doc_as_upsert':True})
         else:
             try:
-                es.delete(index='points_'+cluster_id,doc_type='point',id=point_id)
+                es.delete(index='points_'+cluster_id,id=point_id)
             except NotFoundError:
                 print("Point not found for delete: "+point_id)
                 pass

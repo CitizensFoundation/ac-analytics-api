@@ -108,7 +108,7 @@ class WeightsManager:
       print("Deleted similarityweights: "+self.weightIndexType)
 
   def processSimilarity(self, textId):
-    print("MOST SIMILAR FOR: "+str(textId))
+    #print("MOST SIMILAR FOR: "+str(textId))
 
     #TODO: Confirm if this is needed https://github.com/RaRe-Technologies/gensim/issues/2260
     #self.model.docvecs.vectors_docs_norm = None
@@ -121,8 +121,8 @@ class WeightsManager:
       return
     #print(most_similar)
     for similarId,similarWeight in most_similar:
-      print("MOST sim id: "+similarId)
-      print("MOST w: "+str(similarWeight))
+      #print("MOST sim id: "+similarId)
+      #print("MOST w: "+str(similarWeight))
       if float(similarWeight)>CUTTOFF_FOR_SAVING_WEIGTHS:
         if int(textId)<=int(similarId):
           source=textId
@@ -137,7 +137,7 @@ class WeightsManager:
           "indexType": self.weightIndexType
         }
         id=source+"_"+target+"_"+self.weightIndexType
-        print("Saved item with weight: "+str(similarWeight))
+        #print("Saved item with weight: "+str(similarWeight))
         es.update(index="similarityweights_"+self.object["cluster_id"],id=id,body={'doc':body,'doc_as_upsert':True})
       else:
         print("Item not saved with low weight: "+str(similarWeight))
