@@ -15,6 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import os.path
+from os import path
 
 import json
 import sys
@@ -152,21 +154,32 @@ class PostList(Resource):
     def addToPostTriggerQueue(self, cluster_id, domain_id, community_id, group_id):
         print("addToPostTriggerQueue")
 
-        queue.enqueue_call(
-            func=triggerPostTraining, args=("posts", {
-                "cluster_id": cluster_id,
-                "domain_id": domain_id,
-                "community_id": community_id,
-                "group_id": group_id,
-                }), result_ttl=1*60*60*1000)
-        if (domain_id!=None):
-            PostList.triggerPostDomainQueueTimer[domain_id]=None;
+        lockFilename = "/tmp/acaRqInQueuePosts_"+cluster_id+"_"+domain_id+"_"+community_id+"_"+group_id;
 
-        if (community_id!=None):
-            PostList.triggerPostCommunityQueueTimer[community_id]=None;
+        if path.exists(lockFilename):
+            print("Already in queue: "+lockFilename)
+        else:
+            f = open(lockFilename, "w")
+            f.write("x")
+            f.close()
 
-        if (group_id!=None):
-            PostList.triggerPostGroupQueueTimer[group_id]=None;
+            queue.enqueue_call(
+                func=triggerPostTraining, args=("posts", {
+                    "cluster_id": cluster_id,
+                    "domain_id": domain_id,
+                    "community_id": community_id,
+                    "group_id": group_id,
+                    "lockFilename": lockFilename
+                    }), result_ttl=1*60*60*1000)
+
+            if (domain_id!=None):
+                PostList.triggerPostDomainQueueTimer[domain_id]=None;
+
+            if (community_id!=None):
+                PostList.triggerPostCommunityQueueTimer[community_id]=None;
+
+            if (group_id!=None):
+                PostList.triggerPostGroupQueueTimer[group_id]=None;
 
     def triggerTrainingUpdate(self, cluster_id, rawPost):
         if PostList.triggerPostDomainQueueTimer.get(rawPost.domain_id)==None:
@@ -238,25 +251,35 @@ class PointList(Resource):
     def addToPointTriggerQueue(self, cluster_id, domain_id, community_id, group_id, post_id):
         print("addToPointTriggerQueue")
 
-        queue.enqueue_call(
-            func=triggerPointTraining, args=("points", {
-                "cluster_id": cluster_id,
-                "domain_id": domain_id,
-                "community_id": community_id,
-                "group_id": group_id,
-                "post_id": post_id
-                }), result_ttl=1*60*60*1000)
-        if (domain_id!=None):
-            PointList.triggerPointDomainQueueTimer[domain_id]=None;
+        lockFilename = "/tmp/acaRqInQueuePoints_"+cluster_id+"_"+domain_id+"_"+community_id+"_"+goup_id+"_"+post_id;
 
-        if (community_id!=None):
-            PointList.triggerPointCommunityQueueTimer[community_id]=None;
+        if path.exists(lockFilename):
+            print("Already in queue: "+lockFilename)
+        else:
+            f = open(lockFilename, "w")
+            f.write("x")
+            f.close()
 
-        if (group_id!=None):
-            PointList.triggerPointGroupQueueTimer[group_id]=None;
+            queue.enqueue_call(
+                func=triggerPointTraining, args=("points", {
+                    "cluster_id": cluster_id,
+                    "domain_id": domain_id,
+                    "community_id": community_id,
+                    "group_id": group_id,
+                    "post_id": post_id,
+                    "lockFilename": lockFilename
+                    }), result_ttl=1*60*60*1000)
+            if (domain_id!=None):
+                PointList.triggerPointDomainQueueTimer[domain_id]=None;
 
-        if (post_id!=None):
-            PointList.triggerPointPostQueueTimer[post_id]=None;
+            if (community_id!=None):
+                PointList.triggerPointCommunityQueueTimer[community_id]=None;
+
+            if (group_id!=None):
+                PointList.triggerPointGroupQueueTimer[group_id]=None;
+
+            if (post_id!=None):
+                PointList.triggerPointPostQueueTimer[post_id]=None;
 
     def triggerPointTrainingUpdate(self, cluster_id, rawPoint):
         print("Triggering triggerPointTrainingUpdate")
