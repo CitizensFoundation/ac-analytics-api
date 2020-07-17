@@ -42,7 +42,7 @@ from controllers.similarities import TriggerDomainPostTraining, TriggerCommunity
 
 from controllers.wordcloud import GetCommunityWordCloud, GetDomainWordCloud, GetGroupWordCloud, GetPostWordCloud
 
-from controllers.conversion import ConvertDocx;
+from controllers.conversion import ConvertDocxSurveyToJSON;
 
 if os.environ.get('AC_ANALYTICS_API_URL'):
     api_url = os.environ['AC_ANALYTICS_API_URL']
@@ -112,7 +112,7 @@ api.add_resource(TriggerGroupPostTraining, api_url+'/trigger_similarities_traini
 
 api.add_resource(TriggerPostPointsTraining, api_url+'/trigger_similarities_training/post/<cluster_id>/<post_id>')
 
-app.add_resrouce(ConvertDocxSurveyToJSON, api_url+'/convert_doc_x_survey_to_json')
+api.add_resource(ConvertDocxSurveyToJSON, api_url+'/convert_doc_x_survey_to_json')
 
 # Anonymized export APIs
 

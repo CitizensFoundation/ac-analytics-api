@@ -276,4 +276,6 @@ class ConvertDocxSurveyToJSON(Resource):
           data = rawData['base64data']
           data += '=' * (-len(data) % 4)  # restore stripped '='s
           json_data = convert_docx_document(base64.decodebytes(b'{data}'))
+        except(error):
+          print(str(error))
         return json_data
