@@ -18,10 +18,12 @@ import os
 
 import json
 import sys
+import base64
+import io
 
 from threading import Timer
 
-from flask import jsonify
+from flask import jsonify, request
 from flask_restful import reqparse, Resource
 
 from docx.api import Document
@@ -44,6 +46,10 @@ es_url = os.environ['AC_ANALYTICS_ES_URL'] if os.environ.get('AC_ANALYTICS_ES_UR
 master_api_key = os.environ['AC_ANALYTICS_MASTER_API_KEY']
 
 parser = reqparse.RequestParser()
+
+def myprint(text):
+  #print(text)
+  t = text
 
 def iter_block_items(parent):
     if isinstance(parent, doctwo):
@@ -78,7 +84,7 @@ def convert_docx_document(documentData):
     return inputString.split("[")[0].strip()
 
   def appendSurveyItem(item):
-    print(item)
+    myprint(item)
     survey_items.append(item)
 
   def clean(text):
@@ -91,19 +97,19 @@ def convert_docx_document(documentData):
       return False
 
   def appendRatio(uniqueId, optionsText, questionText, subType=None):
-    print("RADIOS")
+    myprint("RADIOS")
     radios = []
     uniqueId = uniqueId.replace("]","").replace("]","")
     if len(optionsText)<2:
-      print(optionsText)
+      myprint(optionsText)
       optionsText = splitByDigit("".join(optionsText)).split("\n")
-      print(optionsText)
+      myprint(optionsText)
 
     for option in optionsText:
       number = option[:2].strip().replace(".","")
-      #print("Number: "+number)
+      #myprint("Number: "+number)
       text = option[2:].strip()
-      #print("Text: "+text)
+      #myprint("Text: "+text)
       isSpecify = False
       skipTo = None
       if has_specify(text):
@@ -122,7 +128,7 @@ def convert_docx_document(documentData):
       if len(text)>0 and len(number)>0:
         radios.append({'skipTo': skipTo, 'text': text, 'subCode': number, 'subType': sub_type, 'isSpecify': isSpecify})
     questionText, max_length = get_max_length(questionText)
-    print("MAX:"+str(max_length))
+    myprint("MAX:"+str(max_length))
     appendSurveyItem({'type':'radios', 'subType': subType, 'uniqueId': uniqueId, 'radioButtons': radios, 'text': getStringToBracket(questionText), 'maxLength': max_length})
 
   def processSkipTo(text):
@@ -148,7 +154,7 @@ def convert_docx_document(documentData):
     return text,max_length
 
   def appendCheckbox(uniqueId, optionsText, questionText):
-    print("CHECKBOXES")
+    myprint("CHECKBOXES")
     checkboxes = []
     uniqueId = uniqueId.replace("]","").replace("]","")
     for option in optionsText:
@@ -180,18 +186,18 @@ def convert_docx_document(documentData):
         part+="\n"
       part += char
     part+="\n"
-    print("PART: "+part)
+    myprint("PART: "+part)
     return part.strip()
 
   def splitByColumns(columns):
-    print(columns)
+    myprint(columns)
     i = 0
     options = []
     for column in columns:
       if i>1:
         options.append(column.text)
       i += 1
-    print(options)
+    myprint(options)
     return options
 
   firstCell = True
@@ -217,17 +223,17 @@ def convert_docx_document(documentData):
         denseUniqueId = None
         for ri, row in enumerate(table.rows):
           if len(table.rows)>ri+1:
-            print("HEH: "+table.rows[ri+1].cells[0].text.strip())
-            print("TRUE"+str(table.rows[ri+1].cells[0].text.strip().startswith("а")))
+            myprint("HEH: "+table.rows[ri+1].cells[0].text.strip())
+            myprint("TRUE"+str(table.rows[ri+1].cells[0].text.strip().startswith("а")))
           if firstCell==True:
               firstCell=False
-              print("Description")
+              myprint("Description")
               appendSurveyItem({'type':'textDescription','text': getStringToBracket(row.cells[0].text.strip())})
           else: #if row.cells[2] and len(row.cells[2].text)>1
-            print("ROWS"+str(len(table.rows))+" ri: "+str(ri))
+            myprint("ROWS"+str(len(table.rows))+" ri: "+str(ri))
             if len(table.rows)>ri+1 and (table.rows[ri+1].cells[0].text.strip().startswith("a") or table.rows[ri+1].cells[0].text.strip().startswith("а")):
               denseUniqueId = row.cells[0].text.strip().replace("[","").replace("]","")
-              print("DENSE RATIOS: "+denseUniqueId)
+              myprint("DENSE RATIOS: "+denseUniqueId)
               appendSurveyItem({'type':'textDescription','text': getStringToBracket(row.cells[1].text.strip())})
               #if len(row.cells)>2 and row.cells[2].text.strip().startswith("1"):
                 #appendSurveyItem({'type':'textDescription','text': getStringToBracket(row.cells[2].text.strip())})
@@ -271,11 +277,8 @@ class ConvertDocxSurveyToJSON(Resource):
   def put(self):
         json_data = None
         try:
-          parser.add_argument('base64data')
-          rawData = parser.parse_args()
-          data = rawData['base64data']
-          data += '=' * (-len(data) % 4)  # restore stripped '='s
-          json_data = convert_docx_document(base64.decodebytes(b'{data}'))
-        except(error):
+          json_data = convert_docx_document(request.files['file'])
+        except:
+          error = sys.exc_info()[0]
           print(str(error))
         return json_data
