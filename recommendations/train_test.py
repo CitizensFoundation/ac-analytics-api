@@ -5,6 +5,7 @@ from subprocess import check_output
 from sklearn import metrics
 from scipy.sparse import csr_matrix
 from lightfm import LightFM
+from lightfm.evaluation import auc_score
 from datetime import datetime
 from sklearn.model_selection import train_test_split
 import numpy as np  # linear algebra
@@ -89,11 +90,14 @@ print("After load")
 print(len(events))
 print(len(items))
 
+print (type(events))
+
+
 print(events[0:100])
 print(items[0:100])
 
-events = events[0:100000]
-items = items[0:100000]
+#events = events[0:1000000]
+#items = items[0:1000000]
 
 user_activity_count = dict()
 for row in events.itertuples():
@@ -119,8 +123,8 @@ all_users = set(cleaned_data.index.values)
 all_items = set(events['itemid'])
 # todo: we need to clear items which are only viewed once
 
-print(random.sample(all_users, 10))
-print(random.sample(all_items, 10))
+#print(random.sample(all_users, 10))
+#print(random.sample(all_items, 10))
 
 print("Before mapping")
 
@@ -169,10 +173,10 @@ user_to_item_matrix.shape
 
 filtered_items = items[items.itemid.isin(all_items)]
 
-print("After filtered items")
+#print("After filtered items")
 
-print(filtered_items[0:100])
-print(user_to_item_matrix[0:100])
+#print(filtered_items[0:100])
+#print(user_to_item_matrix[0:100])
 
 
 fake_itemid = []
@@ -282,16 +286,14 @@ X_train, X_test, item_users_altered = make_train(
     user_to_item_matrix, pct_test=0.1)
 
 print(X_train)
-
-print("itemusersealtered")
-print(item_to_property_matrix_sparse)
+print(X_test)
 
 print("Before fit partial =", datetime.now().strftime("%H:%M:%S"))
 
-no_comp, lr, ep = 30, 0.01, 10
+no_comp, lr, ep = 30, 0.01, 100
 model = LightFM(no_components=no_comp, learning_rate=lr, loss='warp')
 model.fit(
-    user_to_item_matrix,
+    X_train,
     item_features=item_to_property_matrix_sparse,
     epochs=ep,
     num_threads=8,
@@ -299,117 +301,13 @@ model.fit(
 
 print("After fit partial =", datetime.now().strftime("%H:%M:%S"))
 
+NUM_THREADS = 8
+
+test_auc = auc_score(model,
+                    X_test,
+                    item_features=item_to_property_matrix_sparse,
+                    num_threads=NUM_THREADS).mean()
+print('Hybrid test set AUC: %s' % test_auc)
+
 LightFmModelCache.save_model(model, 99)
 
-def auc_score(predictions, target):
-    '''
-    This simple function will output the area under the curve using sklearn's metrics.
-
-    parameters:
-    - predictions: your prediction output
-    - test: the actual target result you are comparing to
-    returns:
-    - AUC (area under the Receiver Operating Characterisic curve)
-    '''
-    fpr, tpr, thresholds = metrics.roc_curve(target, predictions)
-    return metrics.auc(fpr, tpr)
-
-
-def normalise_for_predictions(arr):
-    arr[arr <= 1.5] = 0
-    arr[arr > 1.5] = 1
-    return arr
-
-
-def get_predictions(user_id, model):
-    pid_array = np.arange(n_items, dtype=np.int32)
-    uid_array = np.empty(n_items, dtype=np.int32)
-    uid_array.fill(user_id)
-    predictions = model.predict(
-        uid_array,
-        pid_array,
-        item_features=item_to_property_matrix_sparse,
-        num_threads=4)
-
-    return predictions
-
-
-def calc_mean_auc(training_set, altered_users, model, test_set):
-    '''
-    This function will calculate the mean AUC by user for any user that had their user-item matrix altered.
-
-    parameters:
-
-    training_set - The training set resulting from make_train, where a certain percentage of the original
-    user/item interactions are reset to zero to hide them from the model
-
-    predictions - The matrix of your predicted ratings for each user/item pair as output from the implicit MF.
-    These should be stored in a list, with user vectors as item zero and item vectors as item one.
-
-    altered_users - The indices of the users where at least one user/item pair was altered from make_train function
-
-    test_set - The test set constucted earlier from make_train function
-
-
-
-    returns:
-
-    The mean AUC (area under the Receiver Operator Characteristic curve) of the test set only on user-item interactions
-    there were originally zero to test ranking ability in addition to the most popular items as a benchmark.
-    '''
-
-    store_auc = []  # An empty list to store the AUC for each user that had an item removed from the training set
-    popularity_auc = []  # To store popular AUC scores
-    # Get sum of item iteractions to find most popular
-    pop_items = np.array(test_set.sum(axis=0)).reshape(-1)
-    print(len(altered_users))
-    index = 0
-    every_ten_thousund = 0
-    for user in altered_users:  # Iterate through each user that had an item altered
-        print(user)
-        index = index + 1
-        every_ten_thousund = every_ten_thousund + 1
-        if every_ten_thousund > 10000:
-            every_ten_thousund = 0
-            print(index)
-        training_row = training_set[user, :].toarray(
-        ).reshape(-1)  # Get the training set row
-        # Find where the interaction had not yet occurred
-        zero_inds = np.where(training_row == 0)
-        # Get the predicted values based on our user/item vectors
-        pred = get_predictions(user, model)[zero_inds].reshape(-1)
-        print(pred)
-        pred = normalise_for_predictions(pred)
-        print(pred)
-        # Get only the items that were originally zero
-        # Select all ratings from the MF prediction for this user that originally had no iteraction
-        actual = test_set[user, :].toarray()[0, zero_inds].reshape(-1)
-        print(actual)
-        actual = normalise_for_predictions(actual)
-        print(actual)
-        # Select the binarized yes/no interaction pairs from the original full data
-        # that align with the same pairs in training
-        # Get the item popularity for our chosen items
-        pop = pop_items[zero_inds]
-        # Calculate AUC for the given user and store
-        store_auc.append(auc_score(pred, actual))
-        # Calculate AUC using most popular and score
-        popularity_auc.append(auc_score(pop, actual))
-        #print(store_auc)
-        #print(popularity_auc)
-    # End users iteration
-    return float('%.3f' % np.mean(store_auc)), float('%.3f' % np.mean(popularity_auc))
-   # Return the mean AUC rounded to three decimal places for both test and popularity benchmark
-
-
-print("Before calc mean")
-
-meanAucTest, meanAucPop = calc_mean_auc(
-    X_train, item_users_altered,  model, X_test)
-
-print("End Time =", datetime.now().strftime("%H:%M:%S"))
-
-print(str(meanAucTest))
-print(str(meanAucPop))
-
-predictions
