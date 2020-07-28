@@ -60,9 +60,9 @@ def get_events_from_es(cluster_id):
     for event in raw_events:
         date = datetime.strptime(event['_source']["date"], '%Y-%m-%dT%H:%M:%S.%fZ')
         timestamp = int("{:%s}".format(date))
-        lfm_post_ids.append(event['_source']["postId"])
+        lfm_post_ids.append(int(event['_source']["postId"]))
         lfm_timestamps.append(timestamp)
-        lfm_user_ids.append(event['_source']["userId"])
+        lfm_user_ids.append(int(event['_source']["userId"]))
         lfm_actions.append(event['_source']["action"])
 
     lfm_property_dict = {'post_id':lfm_post_ids, 'timestamp':lfm_timestamps, 'user_id': lfm_user_ids,
@@ -120,37 +120,37 @@ def get_posts_from_es(cluster_id):
         property = "groupid"
         value = post['_source']['group_id']
 
-        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
+        pre_posts.append({"property": property, "value": value, "post_id": int(post_id), "timestamp": timestamp})
 
         property = "communityid"
         value = post['_source']['community_id']
 
-        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
+        #pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         property = "domain_id"
         value = post['_source']['domain_id']
 
-        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
+        #pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         if 'category_id' in post['_source']:
           property = "categoryid"
           value = post['_source']['category_id']
-          pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
+          #pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         property = "1"
         value = post['_source']['counter_endorsements_up'] > 0
 
-        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
+        #pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         property = "2"
         value = post['_source']['counter_endorsements_down'] > 0
 
-        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
+        #pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         property = "3"
         value = post['_source']['counter_points'] > 0
 
-        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
+        #pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         # TODO: Add, language, text hashes, the next five closes ideas and automatic keyword extraction features
 
@@ -162,7 +162,7 @@ def get_posts_from_es(cluster_id):
     lfm_properties = []
     lfm_values = []
     for lfm_post in pre_posts:
-        lfm_post_ids.append(lfm_post["post_id"])
+        lfm_post_ids.append(int(lfm_post["post_id"]))
         lfm_timestamps.append(lfm_post["timestamp"])
         lfm_properties.append(lfm_post["property"])
         lfm_values.append(lfm_post["value"])
@@ -271,8 +271,8 @@ cleaned_data = dataframe[dataframe['activity'] != 1]
 # all users contains the userids with more than 1 activity in the events (4lac)
 all_users = set(cleaned_data.index.values)
 all_posts = set(events['post_id'])
-print("ALl posts")
-print(all_posts)
+print("ALl users")
+print(all_users)
 # todo: we need to clear posts which are only viewed once
 
 #print(random.sample(all_users, 10))
@@ -296,6 +296,7 @@ for row in events.itertuples():
 
 n_users = len(all_users)
 n_posts = len(all_posts)
+print("NPOST", n_posts)
 user_to_post_matrix = sp.dok_matrix((n_users, n_posts), dtype=np.int8)
 # We need to check whether we need to add the frequency of view, addtocart and transation.
 # Currently we are only taking a single value for each row and column.
@@ -333,6 +334,10 @@ user_to_post_matrix.shape
 
 filtered_posts = posts[posts.post_id.isin(all_posts)]
 
+print(filtered_posts)
+
+print(len(filtered_posts))
+
 #print("After filtered posts")
 
 # print(filtered_posts[0:100])
@@ -343,20 +348,22 @@ filtered_posts['post_id'] = filtered_posts['post_id'].apply(
 
 filtered_posts = filtered_posts.sort_values(
     'timestamp', ascending=False).drop_duplicates(['post_id', 'property'])
+
 filtered_posts.sort_values(by='post_id', inplace=True)
+
 post_to_property_matrix = filtered_posts.pivot(
     index='post_id', columns='property', values='value')
 
 post_to_property_matrix.shape
 
-useful_cols = list()
-cols = post_to_property_matrix.columns
-for col in cols:
-    value = len(post_to_property_matrix[col].value_counts())
-    if value < 50:
-        useful_cols.insert(0, col)
+#useful_cols = list()
+#cols = post_to_property_matrix.columns
+#for col in cols:
+#    value = len(post_to_property_matrix[col].value_counts())
+#    if value < 50:
+#        useful_cols.insert(0, col)
 
-post_to_property_matrix = post_to_property_matrix[useful_cols]
+#post_to_property_matrix = post_to_property_matrix[useful_cols]
 
 post_to_property_matrix_one_hot_sparse = pd.get_dummies(
     post_to_property_matrix)
