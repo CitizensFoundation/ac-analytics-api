@@ -85,6 +85,8 @@ class DomainList(Resource):
         parser.add_argument('name')
         parser.add_argument('status')
         parser.add_argument('language')
+        parser.add_argument('created_at')
+        parser.add_argument('updated_at')
         rawPost = parser.parse_args()
         language = rawPost['language'][:2]
         language = language.lower()
@@ -107,6 +109,8 @@ class CommunityList(Resource):
         parser.add_argument('name')
         parser.add_argument('language')
         parser.add_argument('status')
+        parser.add_argument('created_at')
+        parser.add_argument('updated_at')
         rawPost = parser.parse_args()
         language = rawPost['language'][:2]
         language = language.lower()
@@ -128,6 +132,8 @@ class GroupList(Resource):
         parser.add_argument('name')
         parser.add_argument('status')
         parser.add_argument('language')
+        parser.add_argument('created_at')
+        parser.add_argument('updated_at')
         rawPost = parser.parse_args()
         language = rawPost['language'][:2]
         language = language.lower()
@@ -209,6 +215,8 @@ class PostList(Resource):
         parser.add_argument('counter_points')
         parser.add_argument('counter_flags')
         parser.add_argument('imageUrl')
+        parser.add_argument('created_at')
+        parser.add_argument('updated_at')
         parser.add_argument('videoUrl')
         parser.add_argument('audioUrl')
         parser.add_argument('publicAccess')
