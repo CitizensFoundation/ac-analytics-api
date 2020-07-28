@@ -67,6 +67,7 @@ def get_trainingdata_from_es(cluster_id):
 # https://www.kaggle.com/khacnghia97/recommend-ligthfm
 # TODO: Automatically get keywords from posts texts and feed as tags into this algorithm
 # TODO: Use groups
+# TODO: Try to make single users of users with multiple accts, like Facebook login and SAML login
 
 now = datetime.now()
 
@@ -101,15 +102,15 @@ print(items[0:100])
 
 user_activity_count = dict()
 for row in events.itertuples():
-    if row.visitorid not in user_activity_count:
-        user_activity_count[row.visitorid] = {
-            'view': 0, 'addtocart': 0, 'transaction': 0}
+    if row.user_id not in user_activity_count:
+        user_activity_count[row.user_id] = {
+            'endorse': 0, 'addtocart': 0, 'transaction': 0}
     if row.event == 'addtocart':
-        user_activity_count[row.visitorid]['addtocart'] += 1
+        user_activity_count[row.user_id]['addtocart'] += 1
     elif row.event == 'transaction':
-        user_activity_count[row.visitorid]['transaction'] += 1
+        user_activity_count[row.user_id]['transaction'] += 1
     elif row.event == 'view':
-        user_activity_count[row.visitorid]['view'] += 1
+        user_activity_count[row.user_id]['view'] += 1
 
 d = pd.DataFrame(user_activity_count)
 dataframe = d.transpose()
@@ -128,13 +129,13 @@ all_items = set(events['itemid'])
 
 print("Before mapping")
 
-visitorid_to_index_mapping = {}
+user_id_to_index_mapping = {}
 itemid_to_index_mapping = {}
 vid = 0
 iid = 0
 for row in events.itertuples():
-    if row.visitorid in all_users and row.visitorid not in visitorid_to_index_mapping:
-        visitorid_to_index_mapping[row.visitorid] = vid
+    if row.user_id in all_users and row.user_id not in user_id_to_index_mapping:
+        user_id_to_index_mapping[row.user_id] = vid
         vid = vid + 1
 
     if row.itemid in all_items and row.itemid not in itemid_to_index_mapping:
@@ -149,10 +150,10 @@ user_to_item_matrix = sp.dok_matrix((n_users, n_items), dtype=np.int8)
 action_weights = [1, 2, 3]
 
 for row in events.itertuples():
-    if row.visitorid not in all_users:
+    if row.user_id not in all_users:
         continue
 
-    mapped_visitor_id = visitorid_to_index_mapping[row.visitorid]
+    mapped_visitor_id = user_id_to_index_mapping[row.user_id]
     mapped_item_id = itemid_to_index_mapping[row.itemid]
 
     value = 0
@@ -290,18 +291,19 @@ print(X_test)
 
 print("Before fit partial =", datetime.now().strftime("%H:%M:%S"))
 
+NUM_THREADS = 14
+
 no_comp, lr, ep = 30, 0.01, 100
 model = LightFM(no_components=no_comp, learning_rate=lr, loss='warp')
 model.fit(
     X_train,
     item_features=item_to_property_matrix_sparse,
     epochs=ep,
-    num_threads=8,
+    num_threads=NUM_THREADS,
     verbose=True)
 
 print("After fit partial =", datetime.now().strftime("%H:%M:%S"))
 
-NUM_THREADS = 8
 
 test_auc = auc_score(model,
                     X_test,
