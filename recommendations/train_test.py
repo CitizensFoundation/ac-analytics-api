@@ -3,6 +3,7 @@ from elasticsearch import Elasticsearch, helpers, exceptions
 import json
 
 import datetime
+import time
 
 from subprocess import check_output
 from sklearn import metrics
@@ -40,40 +41,34 @@ def get_events_from_es(cluster_id):
     # returns a generator object
     print(type(resp))
 
-    # cast generator as list to get length
-    print('\nscan() scroll length:', len(list(resp)))
+    events_list = list(resp)
+
+    print(len(events_list))
 
     # enumerate the documents
-    for num, event in enumerate(resp):
-        print('\n', num, '', event)
+    for event in events_list:
         raw_events.append(event)
 
     print(raw_events[0:10])
 
     print("RawEventsLength: ", len(raw_events))
 
-    for event in raw_events:
-        date = datetime.strptime(event.date, '%Y-%m-%dT%H:%M:%S.%fZ')
-        timestamp = time.mktime(date.timetuple())
-
-        pre_events.append({"timestamp": timestamp, "user_id": event.user_id, "post_id": event.post_id, "action": event.action })
-
-    print(pre_events[0:10])
-
     lfm_post_ids = []
     lfm_timestamps = []
     lfm_user_ids = []
     lfm_actions = []
-    for lfm_event in pre_events:
-        lfm_post_ids.insert(0, lfm_event.post_id)
-        lfm_timestamps.insert(0, lfm_event.timestamp)
-        lfm_user_ids.insert(0, lfm_event.user_id)
-        lfm_actions.insert(0, lfm_event.action)
+    for event in raw_events:
+        date = datetime.strptime(event['_source']["date"], '%Y-%m-%dT%H:%M:%S.%fZ')
+        timestamp = int("{:%s}".format(date))
+        lfm_post_ids.append(event['_source']["postId"])
+        lfm_timestamps.append(timestamp)
+        lfm_user_ids.append(event['_source']["userId"])
+        lfm_actions.append(event['_source']["action"])
 
     lfm_property_dict = {'post_id':lfm_post_ids, 'timestamp':lfm_timestamps, 'user_id': lfm_user_ids,
                         'action':lfm_actions}
 
-    lfm_events = pd.DataFrame(lfm_property_dict, ["post_id","timestamp","user_id","action"])
+    lfm_events = pd.DataFrame(lfm_property_dict)
 
     print(lfm_events[0:10])
     print(len(lfm_events))
@@ -107,56 +102,59 @@ def get_posts_from_es(cluster_id):
     for item in item_list:
         raw_posts.append(item)
 
-    print(raw_posts[0:10])
+    #print(raw_posts[0:10])
     print("RawPostLength: ", len(raw_posts))
 
     for post in raw_posts:
         date = None
-        if post.created_at:
-            date = datetime.strptime(post.created_at, '%Y-%m-%dT%H:%M:%S.%fZ')
+        timestamp = None
+        if 'created_at' in post['_source']:
+            date = datetime.strptime( post['_source']['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            timestamp = int("{:%s}".format(date))
         else:
             date = datetime.now();
-        timestamp = time.mktime(date.timetuple())
-        post_id = post.id
+            timestamp = int("{:%s}".format(date))
+
+        post_id = post['_id']
 
         property = "groupid"
-        value = post.group_id
+        value = post['_source']['group_id']
 
-        pre_posts.append({property, value, post_id, timestamp})
+        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         property = "communityid"
-        value = post.community_id
+        value = post['_source']['community_id']
 
-        pre_posts.append({property, value, post_id, timestamp})
+        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         property = "domain_id"
-        value = post.domain_id
+        value = post['_source']['domain_id']
 
-        pre_posts.append({property, value, post_id, timestamp})
+        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
-        if post.category_id:
+        if 'category_id' in post['_source']:
           property = "categoryid"
-          value = post.category_id
-
-          pre_posts.append({property, value, post_id, timestamp})
+          value = post['_source']['category_id']
+          pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         property = "1"
-        value = post.counter_endorsements_up > 0
+        value = post['_source']['counter_endorsements_up'] > 0
 
-        pre_posts.append({property, value, post_id, timestamp})
+        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         property = "2"
-        value = post.counter_endorsements_down > 0
+        value = post['_source']['counter_endorsements_down'] > 0
 
-        pre_posts.append({property, value, post_id, timestamp})
+        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         property = "3"
-        value = post.counter_points > 0
+        value = post['_source']['counter_points'] > 0
 
-        pre_posts.append({property, value, post_id, timestamp})
+        pre_posts.append({"property": property, "value": value, "post_id": post_id, "timestamp": timestamp})
 
         # TODO: Add, language, text hashes, the next five closes ideas and automatic keyword extraction features
 
+    print("pre_posts len: ", len(raw_posts))
     print(pre_posts[0:10])
 
     lfm_post_ids = []
@@ -164,20 +162,24 @@ def get_posts_from_es(cluster_id):
     lfm_properties = []
     lfm_values = []
     for lfm_post in pre_posts:
-        lfm_post_id.insert(0, lfm_post.post_id)
-        lfm_timestamps.insert(0, lfm_post.timestamp)
-        lfm_properties.insert(0, lfm_post.property)
-        lfm_values.insert(0, lfm_post.value)
+        lfm_post_ids.append(lfm_post["post_id"])
+        lfm_timestamps.append(lfm_post["timestamp"])
+        lfm_properties.append(lfm_post["property"])
+        lfm_values.append(lfm_post["value"])
 
+    print("Post ids")
     print(lfm_post_ids[0:10])
+    print("Timestamps")
     print(lfm_timestamps[0:10])
+    print("Properties")
     print(lfm_properties[0:10])
+    print("Values")
     print(lfm_values[0:10])
 
     lfm_property_dict = {'post_id':lfm_post_ids, 'timestamp':lfm_timestamps, 'property':lfm_properties,
                         'value':lfm_values}
 
-    lfm_posts = pd.DataFrame(lfm_property_dict, ["post_id","timestamp","property","value"])
+    lfm_posts = pd.DataFrame(lfm_property_dict)
 
     print(lfm_posts[0:10])
     print(len(lfm_posts))
@@ -186,10 +188,10 @@ def get_posts_from_es(cluster_id):
 
 def get_trainingdata_from_es(cluster_id):
     posts = get_posts_from_es(cluster_id)
-    events = get_data_from_es(cluster_id)
-    category_tree = get_category_tree_from_es(cluster_id)
+    events = get_events_from_es(cluster_id)
+#    category_tree = get_category_tree_from_es(cluster_id)
 
-    return posts, events, category_tree
+    return posts, events
 
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
@@ -213,11 +215,11 @@ cluster_id = 1
 
 posts, events = get_trainingdata_from_es(cluster_id)
 
-events = pd.read_csv('./events.csv')
-category_tree = pd.read_csv('./category_tree.csv')
-posts1 = pd.read_csv('./post_properties_part1.csv')
-posts2 = pd.read_csv('./post_properties_part2.csv')
-posts = pd.concat([posts1, posts2])
+#events = pd.read_csv('./events.csv')
+#category_tree = pd.read_csv('./category_tree.csv')
+#posts1 = pd.read_csv('./post_properties_part1.csv')
+#posts2 = pd.read_csv('./post_properties_part2.csv')
+#posts = pd.concat([posts1, posts2])
 
 print("After load")
 
@@ -240,26 +242,26 @@ for row in events.itertuples():
             'new-post': 0, 'endorse': 0, 'oppose': 0,
             'new-point': 0, 'new-point-comment': 0, 'point-helpful': 0,
             'point-unhelpful': 0}
-    if row.event == 'new-post':
+    if row.action == 'new-post':
         user_activity_count[row.user_id]['new-post'] += 1
-    elif row.event == 'endorse':
+    elif row.action == 'endorse':
         user_activity_count[row.user_id]['endorse'] += 1
-    elif row.event == 'oppose':
+    elif row.action == 'oppose':
         user_activity_count[row.user_id]['oppose'] += 1
-    elif row.event == 'new-point':
+    elif row.action == 'new-point':
         user_activity_count[row.user_id]['new-point'] += 1
-    elif row.event == 'new-point-comment':
+    elif row.action == 'new-point-comment':
         user_activity_count[row.user_id]['new-point-comment'] += 1
-    elif row.event == 'point-helpful':
+    elif row.action == 'point-helpful':
         user_activity_count[row.user_id]['point-helpful'] += 1
-    elif row.event == 'point-unhelpful':
+    elif row.action == 'point-unhelpful':
         user_activity_count[row.user_id]['point-unhelpful'] += 1
 
 d = pd.DataFrame(user_activity_count)
 dataframe = d.transpose()
 
 # Activity range
-dataframe['new-post'] = dataframe['endorse'] + \
+dataframe['activity'] = dataframe['new-post'] + dataframe['endorse'] + \
     dataframe['oppose'] + dataframe['new-point'] + \
     dataframe['new-point-comment'] + dataframe['point-helpful'] + \
     dataframe['point-unhelpful']
@@ -269,6 +271,8 @@ cleaned_data = dataframe[dataframe['activity'] != 1]
 # all users contains the userids with more than 1 activity in the events (4lac)
 all_users = set(cleaned_data.index.values)
 all_posts = set(events['post_id'])
+print("ALl posts")
+print(all_posts)
 # todo: we need to clear posts which are only viewed once
 
 #print(random.sample(all_users, 10))
@@ -430,7 +434,7 @@ no_comp, lr, ep = 30, 0.01, 100
 model = LightFM(no_components=no_comp, learning_rate=lr, loss='warp')
 model.fit(
     X_train,
-    post_features=post_to_property_matrix_sparse,
+    item_features=post_to_property_matrix_sparse,
     epochs=ep,
     num_threads=NUM_THREADS,
     verbose=True)
@@ -440,7 +444,7 @@ print("After fit partial =", datetime.now().strftime("%H:%M:%S"))
 
 test_auc = auc_score(model,
                      X_test,
-                     post_features=post_to_property_matrix_sparse,
+                     item_features=post_to_property_matrix_sparse,
                      num_threads=NUM_THREADS).mean()
 print('Hybrid test set AUC: %s' % test_auc)
 
