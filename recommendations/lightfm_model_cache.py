@@ -2,13 +2,19 @@ import os
 import pickle
 
 def get_lightfm_model_filename(cluster_id, temp = False):
-    return "recModels/lightFMCluster"+str(cluster_id)+".model"+'.tmp' if (temp==True) else ''
+    filename = "recModels/lightFMCluster"+str(cluster_id)+".model"
+    if temp:
+        filename += ".tmp"
 
-def get_lightfm_users_filename(cluster_id):
-    return "recModels/lightFMCluster"+str(cluster_id)+".users"+'.tmp' if (temp==True) else ''
+def get_lightfm_users_filename(cluster_id, temp = False):
+    filename = "recModels/lightFMCluster"+str(cluster_id)+".users"
+    if temp:
+        filename += ".tmp"
 
-def get_lightfm_items_filename(cluster_id):
-    return "recModels/lightFMCluster"+str(cluster_id)+".items"+'.tmp' if (temp==True) else ''
+def get_lightfm_items_filename(cluster_id, temp = False):
+    filename = "recModels/lightFMCluster"+str(cluster_id)+".items"
+    if temp:
+        filename += ".tmp"
 
 def get_last_modified_at(cluster_id):
     return os.path.getmtime(get_lightfm_model_filename(cluster_id))
