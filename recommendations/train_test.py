@@ -10,6 +10,8 @@ from sklearn import metrics
 from scipy.sparse import csr_matrix
 from lightfm import LightFM
 from lightfm.evaluation import auc_score
+from lightfm.cross_validation import random_train_test_split
+
 from datetime import datetime
 from sklearn.model_selection import train_test_split
 import numpy as np  # linear algebra
@@ -60,9 +62,9 @@ def get_events_from_es(cluster_id):
     for event in raw_events:
         date = datetime.strptime(event['_source']["date"], '%Y-%m-%dT%H:%M:%S.%fZ')
         timestamp = int("{:%s}".format(date))
-        lfm_post_ids.append(int(event['_source']["postId"]))
+        lfm_post_ids.append(str(event['_source']["postId"]))
         lfm_timestamps.append(timestamp)
-        lfm_user_ids.append(int(event['_source']["userId"]))
+        lfm_user_ids.append(str(event['_source']["userId"]))
         lfm_actions.append(event['_source']["action"])
 
     lfm_property_dict = {'post_id':lfm_post_ids, 'timestamp':lfm_timestamps, 'user_id': lfm_user_ids,
@@ -120,7 +122,7 @@ def get_posts_from_es(cluster_id):
         property = "groupid"
         value = post['_source']['group_id']
 
-        pre_posts.append({"property": property, "value": value, "post_id": int(post_id), "timestamp": timestamp})
+        pre_posts.append({"property": property, "value": value, "post_id": str(post_id), "timestamp": timestamp})
 
         property = "communityid"
         value = post['_source']['community_id']
@@ -202,6 +204,10 @@ def get_trainingdata_from_es(cluster_id):
 # https://www.kaggle.com/khacnghia97/recommend-ligthfm
 # TODO: Automatically get keywords from posts texts and feed as tags into this algorithm
 # TODO: Use groups
+# TODO: https://github.com/aolieman/wayward check for keyword extraction
+# TODO: For user features, user agent https://pypi.org/project/user-agents/
+# TODO: For user geo features https://pypi.org/project/ip2geotools/
+# TODO: Research/make use of this: https://engineering.linkedin.com/blog/2020/open-sourcing-detext
 # TODO: Try to make single users of users with multiple accts, like Facebook login and SAML login
 
 now = datetime.now()
@@ -228,57 +234,16 @@ print(len(posts))
 
 print(type(events))
 
-
 print(events[0:100])
 print(posts[0:100])
 
 #events = events[0:1000000]
 #posts = posts[0:1000000]
 
-user_activity_count = dict()
-for row in events.itertuples():
-    if row.user_id not in user_activity_count:
-        user_activity_count[row.user_id] = {
-            'new-post': 0, 'endorse': 0, 'oppose': 0,
-            'new-point': 0, 'new-point-comment': 0, 'point-helpful': 0,
-            'point-unhelpful': 0}
-    if row.action == 'new-post':
-        user_activity_count[row.user_id]['new-post'] += 1
-    elif row.action == 'endorse':
-        user_activity_count[row.user_id]['endorse'] += 1
-    elif row.action == 'oppose':
-        user_activity_count[row.user_id]['oppose'] += 1
-    elif row.action == 'new-point':
-        user_activity_count[row.user_id]['new-point'] += 1
-    elif row.action == 'new-point-comment':
-        user_activity_count[row.user_id]['new-point-comment'] += 1
-    elif row.action == 'point-helpful':
-        user_activity_count[row.user_id]['point-helpful'] += 1
-    elif row.action == 'point-unhelpful':
-        user_activity_count[row.user_id]['point-unhelpful'] += 1
-
-d = pd.DataFrame(user_activity_count)
-dataframe = d.transpose()
-
-# Activity range
-dataframe['activity'] = dataframe['new-post'] + dataframe['endorse'] + \
-    dataframe['oppose'] + dataframe['new-point'] + \
-    dataframe['new-point-comment'] + dataframe['point-helpful'] + \
-    dataframe['point-unhelpful']
-
-# removing users with only a single view
-cleaned_data = dataframe[dataframe['activity'] != 1]
-# all users contains the userids with more than 1 activity in the events (4lac)
-all_users = set(cleaned_data.index.values)
+all_users = set(events['user_id'])
 all_posts = set(events['post_id'])
-print("ALl users")
-print(all_users)
-# todo: we need to clear posts which are only viewed once
 
-#print(random.sample(all_users, 10))
-#print(random.sample(all_posts, 10))
-
-print("Before mapping")
+print("Before mapping to consequtives integers")
 
 user_id_to_index_mapping = {}
 post_id_to_index_mapping = {}
@@ -297,11 +262,14 @@ for row in events.itertuples():
 n_users = len(all_users)
 n_posts = len(all_posts)
 print("NPOST", n_posts)
+print("NUSERS", n_users)
 user_to_post_matrix = sp.dok_matrix((n_users, n_posts), dtype=np.int8)
+
 # We need to check whether we need to add the frequency of view, addtocart and transation.
 # Currently we are only taking a single value for each row and column.
 
 for row in events.itertuples():
+    #print(row)
     if row.user_id not in all_users:
         continue
 
@@ -324,40 +292,46 @@ for row in events.itertuples():
     elif row.action == 'point-unhelpful':
         value = 1
 
-#    current_value = user_to_post_matrix[mapped_user_id, mapped_post_id]
-#    if value > current_value:
-    user_to_post_matrix[mapped_user_id, mapped_post_id] = value
+    current_value = user_to_post_matrix[mapped_user_id, mapped_post_id]
+    if current_value and current_value>0:
+      user_to_post_matrix[mapped_user_id, mapped_post_id] = current_value+value
+    else:
+      user_to_post_matrix[mapped_user_id, mapped_post_id] = value
 
-user_to_post_matrix = user_to_post_matrix.tocsr()
+#user_to_post_matrix = user_to_post_matrix.tocsr()
 
-user_to_post_matrix.shape
+#user_to_post_matrix = user_to_post_matrix.tocoo()
 
-filtered_posts = posts[posts.post_id.isin(all_posts)]
+#user_to_post_matrix.shape
 
-print(filtered_posts)
+print(user_to_post_matrix)
 
-print(len(filtered_posts))
+#filtered_posts = posts[posts.post_id.isin(all_posts)]
+
+#print(filtered_posts)
+
+#print(len(filtered_posts))
 
 #print("After filtered posts")
 
 # print(filtered_posts[0:100])
 # print(user_to_post_matrix[0:100])
 
-filtered_posts['post_id'] = filtered_posts['post_id'].apply(
-    lambda x: post_id_to_index_mapping[x])
+#filtered_posts['post_id'] = filtered_posts['post_id'].apply(
+#    lambda x: post_id_to_index_mapping[x])
 
-filtered_posts = filtered_posts.sort_values(
-    'timestamp', ascending=False).drop_duplicates(['post_id', 'property'])
+#filtered_posts = filtered_posts.sort_values(
+#    'timestamp', ascending=False).drop_duplicates(['post_id', 'property'])
 
-filtered_posts.sort_values(by='post_id', inplace=True)
+#filtered_posts.sort_values(by='post_id', inplace=True)
 
-post_to_property_matrix = filtered_posts.pivot(
-    index='post_id', columns='property', values='value')
+#post_to_property_matrix = filtered_posts.pivot(
+#    index='post_id', columns='property', values='value')
 
-post_to_property_matrix.shape
+#post_to_property_matrix.shape
 
 #useful_cols = list()
-#cols = post_to_property_matrix.columns
+##cols = post_to_property_matrix.columns
 #for col in cols:
 #    value = len(post_to_property_matrix[col].value_counts())
 #    if value < 50:
@@ -365,94 +339,51 @@ post_to_property_matrix.shape
 
 #post_to_property_matrix = post_to_property_matrix[useful_cols]
 
-post_to_property_matrix_one_hot_sparse = pd.get_dummies(
-    post_to_property_matrix)
+#post_to_property_matrix_one_hot_sparse = pd.get_dummies(
+#    post_to_property_matrix)
 
 print("Before lightfm")
 
-post_to_property_matrix_one_hot_sparse.shape
+#post_to_property_matrix_one_hot_sparse.shape
 
-post_to_property_matrix_sparse = csr_matrix(
-    post_to_property_matrix_one_hot_sparse.values)
-
-def make_train(ratings, pct_test=0.2):
-    '''
-    This function will take in the original user-post matrix and "mask" a percentage of the original ratings where a
-    user-post interaction has taken place for use as a test set. The test set will contain all of the original ratings,
-    while the training set replaces the specified percentage of them with a zero in the original ratings matrix.
-
-    parameters:
-
-    ratings - the original ratings matrix from which you want to generate a train/test set. Test is just a complete
-    copy of the original set. This is in the form of a sparse csr_matrix.
-
-    pct_test - The percentage of user-post interactions where an interaction took place that you want to mask in the
-    training set for later comparison to the test set, which contains all of the original ratings.
-
-    returns:
-
-    training_set - The altered version of the original data with a certain percentage of the user-post pairs
-    that originally had interaction set back to zero.
-
-    test_set - A copy of the original ratings matrix, unaltered, so it can be used to see how the rank order
-    compares with the actual interactions.
-
-    user_inds - From the randomly selected user-post indices, which user rows were altered in the training data.
-    This will be necessary later when evaluating the performance via AUC.
-    '''
-    test_set = ratings.copy()  # Make a copy of the original set to be the test set.
-    # Store the test set as a binary preference matrix
-    test_set[test_set != 0] = 1
-    # Make a copy of the original data we can alter as our training set.
-    training_set = ratings.copy()
-    # Find the indices in the ratings data where an interaction exists
-    nonzero_inds = training_set.nonzero()
-    # Zip these pairs together of user,post index into list
-    nonzero_pairs = list(zip(nonzero_inds[0], nonzero_inds[1]))
-    random.seed(0)  # Set the random seed to zero for reproducibility
-    # Round the number of samples needed to the nearest integer
-    num_samples = int(np.ceil(pct_test*len(nonzero_pairs)))
-    # Sample a random number of user-post pairs without replacement
-    samples = random.sample(nonzero_pairs, num_samples)
-    user_inds = [index[0] for index in samples]  # Get the user row indices
-    post_inds = [index[1] for index in samples]  # Get the post column indices
-    # Assign all of the randomly chosen user-post pairs to zero
-    training_set[user_inds, post_inds] = 0
-    # Get rid of zeros in sparse array storage after update to save space
-    training_set.eliminate_zeros()
-    # Output the unique list of user rows that were altered
-    return training_set, test_set, list(set(user_inds))
-
+#post_to_property_matrix_sparse = csr_matrix(
+#    post_to_property_matrix_one_hot_sparse.values)
 
 print("Before make train =", datetime.now().strftime("%H:%M:%S"))
 
+X_train, X_test = random_train_test_split(user_to_post_matrix, random_state=np.random.RandomState(3))
 
-X_train, X_test, post_users_altered = make_train(
-    user_to_post_matrix, pct_test=0.1)
-
-print(X_train)
-print(X_test)
+#print(X_train)
+#print(X_test)
 
 print("Before fit partial =", datetime.now().strftime("%H:%M:%S"))
 
 NUM_THREADS = 14
+NUM_THREADS = 2
+NUM_COMPONENTS = 30
+NUM_EPOCHS = 3
+ITEM_ALPHA = 1e-6
 
-no_comp, lr, ep = 30, 0.01, 100
-model = LightFM(no_components=no_comp, learning_rate=lr, loss='warp')
+no_comp, lr, ep = 30, 0.01, 20
+model = LightFM(no_components=NUM_COMPONENTS, item_alpha=ITEM_ALPHA, loss='warp')
 model.fit(
     X_train,
-    item_features=post_to_property_matrix_sparse,
-    epochs=ep,
+#    item_features=post_to_property_matrix_sparse,
+    epochs=NUM_EPOCHS,
     num_threads=NUM_THREADS,
     verbose=True)
 
 print("After fit partial =", datetime.now().strftime("%H:%M:%S"))
 
+test_auc = auc_score(model,
+                     X_train,
+                     num_threads=NUM_THREADS).mean()
+print('Train set AUC: %s' % test_auc)
 
 test_auc = auc_score(model,
                      X_test,
-                     item_features=post_to_property_matrix_sparse,
+                     train_interactions=X_test,
                      num_threads=NUM_THREADS).mean()
-print('Hybrid test set AUC: %s' % test_auc)
+print('Test set AUC: %s' % test_auc)
 
 LightFmModelCache.save_model(model, 99)

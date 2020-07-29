@@ -40,6 +40,8 @@ class AddPostAction(Resource):
         parser.add_argument('userId')
         parser.add_argument('postId')
         parser.add_argument('date')
+        parser.add_argument('user_agent')
+        parser.add_argument('ip_address')
         data = parser.parse_args()
 
         es.update(index='post_actions_'+cluster_id,id=data['esId'],body={'doc':data,'doc_as_upsert':True})
