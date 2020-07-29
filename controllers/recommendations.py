@@ -33,6 +33,8 @@ parser = reqparse.RequestParser()
 
 es = Elasticsearch(es_url)
 
+def get_recommendations
+
 class AddPostAction(Resource):
     def post(self, cluster_id):
         parser.add_argument('action')
