@@ -163,26 +163,20 @@ def setup_user_features(user_features_dict, event):
     is_bot = 2
 
     browser_family = "0"
-    browser_version = "0"
 
     os_family = "0"
-    os_version = "0"
 
     device_family =  "0"
     device_brand =  "0"
-    device_model =  "0"
 
-    if 'user_agent' in event:
-        user_agent = parse()
+    if 'user_agent' in event["_source"]:
+        user_agent = parse(event["_source"]['user_agent'])
         browser_family = user_agent.browser.family
-        browser_version = user_agent.browser.version_string
 
         os_family = user_agent.os.family
-        os_version = user_agent.os.version_string
 
         device_family = user_agent.device.family
         device_brand = user_agent.device.brand
-        device_model = user_agent.device.model
 
     user_features_dict["is_mobile"] = is_mobile
     user_features_dict["is_tablet"] = is_tablet
@@ -190,15 +184,13 @@ def setup_user_features(user_features_dict, event):
     user_features_dict["is_bot"] = is_bot
 
     user_features_dict["browser_family"] = browser_family
-    user_features_dict["browser_version"] = browser_version
 
     user_features_dict["os_family"] = os_family
-    user_features_dict["os_version"] = os_version
 
     user_features_dict["device_family"] = device_family
-    user_features_dict["device_brand"] = device_brand
-    user_features_dict["device_model"] = device_model
+    user_features_dict["device_brand"] = device_brand if device_brand else "0"
 
+# TODO: Cache those in files
 def get_user_features_tuple(users_features):
     user_tuple = []
 
@@ -210,14 +202,11 @@ def get_user_features_tuple(users_features):
         features_array.append("is_bot:"+str(users_features[user_id]["is_bot"]))
 
         features_array.append("browser_family:"+users_features[user_id]["browser_family"])
-        features_array.append("browser_version:"+users_features[user_id]["browser_version"])
 
         features_array.append("os_family:"+users_features[user_id]["os_family"])
-        features_array.append("os_version:"+users_features[user_id]["os_version"])
 
         features_array.append("device_family:"+users_features[user_id]["device_family"])
         features_array.append("device_brand:"+users_features[user_id]["device_brand"])
-        features_array.append("device_model:"+users_features[user_id]["device_model"])
 
         user_tuple.append((user_id, features_array))
 
@@ -251,14 +240,11 @@ def get_users_features_dataframe(users_features):
         user_feature_is_bot.append(users_features[user_id]["is_bot"])
 
         user_feature_browser_family.append(users_features[user_id]["browser_family"])
-        user_feature_browser_version.append(users_features[user_id]["browser_version"])
 
         user_feature_os_family.append(users_features[user_id]["os_family"])
-        user_feature_os_version.append(users_features[user_id]["os_version"])
 
         user_feature_device_family.append(users_features[user_id]["device_family"])
         user_feature_device_brand.append(users_features[user_id]["device_brand"])
-        user_feature_device_model.append(users_features[user_id]["device_model"])
 
     dataframe_users_features = pd.DataFrame({
         'user': user_ids_for_features,
@@ -269,14 +255,11 @@ def get_users_features_dataframe(users_features):
         'is_bot': user_feature_is_bot,
 
         'browser_family': user_feature_browser_family,
-        'browser_version': user_feature_browser_version,
 
         'os_family': user_feature_os_family,
-        'os_version': user_feature_os_version,
 
         'device_family': user_feature_device_family,
-        'device_brand': user_feature_device_brand,
-        'device_model': user_feature_device_model
+        'device_brand': user_feature_device_brand
     },  columns = ['user', 'is_mobile', 'is_tablet', 'is_pc', 'is_bot', 'browser_family', 'browser_version',
                 'os_family', 'os_version', 'device_family', 'device_brand', 'device_model'])
 
@@ -312,23 +295,17 @@ def format_users_features(features):
         ['is_pc']*len(features['is_pc'].unique()) + \
         ['is_bot']*len(features['is_bot'].unique()) + \
         ['browser_family']*len(features['browser_family'].unique()) + \
-        ['browser_version']*len(features['browser_version'].unique()) + \
         ['os_family']*len(features['os_family'].unique()) + \
-        ['os_version']*len(features['os_version'].unique()) + \
         ['device_family']*len(features['device_family'].unique()) + \
-        ['device_brand']*len(features['device_brand'].unique()) + \
-        ['device_model']*len(features['device_model'].unique())
+        ['device_brand']*len(features['device_brand'].unique())
     unique_f1 = list(features["is_mobile"].unique()) + \
         list(features["is_tablet"].unique()) + \
         list(features["is_pc"].unique()) + \
         list(features["is_bot"].unique()) + \
         list(features["browser_family"].unique()) + \
-        list(features["browser_version"].unique()) + \
         list(features["os_family"].unique()) + \
-        list(features["os_version"].unique()) + \
         list(features["device_family"].unique()) + \
-        list(features["device_brand"].unique()) + \
-        list(features["device_model"].unique())
+        list(features["device_brand"].unique())
     #print('f1:', unique_f1)
     for x,y in zip(col, unique_f1):
         res = str(x)+ ":" +str(y)
@@ -479,9 +456,9 @@ no_comp, lr, ep = 30, 0.01, 20
 model = LightFM(no_components=NUM_COMPONENTS, item_alpha=ITEM_ALPHA, loss='warp')
 model.fit(
     train_data,
-#    item_features=item_features,
-#    user_features=user_features,
-#    sample_weight= train_weights,
+    item_features=item_features,
+    user_features=user_features,
+    sample_weight= train_weights,
     epochs=NUM_EPOCHS,
     num_threads=NUM_THREADS,
     verbose=True)
@@ -490,15 +467,15 @@ print("After fit =", datetime.now().strftime("%H:%M:%S"))
 
 test_auc = auc_score(model,
                      train_data,
-#                     item_features=item_features,
-#                     user_features=user_features,
+                     item_features=item_features,
+                     user_features=user_features,
                      num_threads=NUM_THREADS).mean()
 print('Train set AUC: %s' % test_auc)
 
 test_auc = auc_score(model,
                      test_interactions=test_data,
-#                     item_features=item_features,
-#                     user_features=user_features,
+                     item_features=item_features,
+                     user_features=user_features,
                      num_threads=NUM_THREADS).mean()
 print('Test set AUC: %s' % test_auc)
 

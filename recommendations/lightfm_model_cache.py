@@ -1,20 +1,20 @@
 import os
 import pickle
 
-def get_lightfm_model_filename(cluster_id, temp = False):
-    filename = "recModels/lightFMCluster"+str(cluster_id)+".model"
+def def_get_common_filename(cluster_id, extension, temp):
+    filename = "recModels/lightFMCluster"+str(cluster_id)+"."+extension
     if temp:
         filename += ".tmp"
+    return filename
+
+def get_lightfm_model_filename(cluster_id, temp = False):
+   return def_get_common_filename(cluster_id,"model",temp)
 
 def get_lightfm_users_filename(cluster_id, temp = False):
-    filename = "recModels/lightFMCluster"+str(cluster_id)+".users"
-    if temp:
-        filename += ".tmp"
+   return def_get_common_filename(cluster_id,"users",temp)
 
 def get_lightfm_items_filename(cluster_id, temp = False):
-    filename = "recModels/lightFMCluster"+str(cluster_id)+".items"
-    if temp:
-        filename += ".tmp"
+   return def_get_common_filename(cluster_id,"items",temp)
 
 def get_last_modified_at(cluster_id):
     return os.path.getmtime(get_lightfm_model_filename(cluster_id))
@@ -67,4 +67,4 @@ class LightFmModelCache(object):
         if cls._models[cluster_id] == None or cls._lastFileModifiedAt[cluster_id] != get_last_modified_at(cluster_id):
             LightFmModelCache.load_model(cluster_id)
 
-        return cls._models[cluster_id]
+        return cls._models[cluster_id], cls._user_id_maps[cluster_id], cls._item_id_maps[cluster_id]
