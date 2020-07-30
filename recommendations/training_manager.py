@@ -19,7 +19,7 @@ from lightfm_model_cache import LightFmModelCache
 from elasticsearch import Elasticsearch, helpers, exceptions
 import json
 
-import datetime
+from datetime import datetime
 import time
 
 from subprocess import check_output
@@ -30,7 +30,6 @@ from lightfm.evaluation import auc_score
 from lightfm.cross_validation import random_train_test_split
 from lightfm.data import Dataset
 
-from datetime import datetime
 from sklearn.model_selection import train_test_split
 import numpy as np  # linear algebra
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
@@ -447,10 +446,10 @@ class RecTrainingManager:
 
         print("After fit =", datetime.now().strftime("%H:%M:%S"))
 
-        return model, user_id_map, user_features, item_id_map, item_features
+        return model, user_id_map, user_features, item_id_map, item_features, interactions
 
     def train_with_test_data(self, cluster_id):
-        print("Start Time =", now.strftime("%H:%M:%S"))
+        print("Start Time =", datetime.now().strftime("%H:%M:%S"))
 
         dataset, interactions, weights, item_features, user_features = create_datasets(cluster_id)
         user_id_map, user_feature_map, item_id_map, item_feature_map = dataset.mapping()

@@ -35,7 +35,7 @@ class LightFmModelCache(object):
     _lastFileModifiedAt = {}
 
     @classmethod
-    def load_model(cls, cluster_id):
+    def load(cls, cluster_id):
         cls._models[cluster_id] = pickle.load(
             open(get_lightfm_model_filename(cluster_id), "rb"))
 
@@ -54,7 +54,7 @@ class LightFmModelCache(object):
         cls._lastFileModifiedAt = get_last_modified_at(cluster_id)
 
     @classmethod
-    def save_model(cls, model, usersmap, usersfeat, itemsmap, itemsfeat, cluster_id):
+    def save(cls, model, usersmap, usersfeat, itemsmap, itemsfeat, cluster_id):
         if not os.path.exists("recModels"):
           os.makedirs("recModels")
 
@@ -62,7 +62,7 @@ class LightFmModelCache(object):
         cls._user_id_maps[cluster_id] = usersmap
         cls._user_features[cluster_id] = usersfeat
         cls._item_id_maps[cluster_id] = itemsmap
-        cls._item_id_features[cluster_id] = itemsfeat
+        cls._item_features[cluster_id] = itemsfeat
 
         with open(get_lightfm_model_filename(cluster_id, True), 'wb') as f:
             pickle.dump(cls._models[cluster_id], f)
@@ -86,8 +86,8 @@ class LightFmModelCache(object):
         os.replace(get_lightfm_itemsfeat_filename(cluster_id, True), get_lightfm_itemsfeat_filename(cluster_id, False))
 
     @classmethod
-    def get_model(cls, cluster_id):
-        if cls._models[cluster_id] == None or cls._lastFileModifiedAt[cluster_id] != get_last_modified_at(cluster_id):
-            LightFmModelCache.load_model(cluster_id)
+    def get(cls, cluster_id):
+        if cluster_id not in cls._models or (cluster_id in cls._lastFileModifiedAt and cls._lastFileModifiedAt[cluster_id] != get_last_modified_at(cluster_id)):
+            LightFmModelCache.load(cluster_id)
 
-        return cls._models[cluster_id], cls._user_id_maps[cluster_id], cls._item_id_maps[cluster_id]
+        return cls._models[cluster_id], cls._user_id_maps[cluster_id], cls._user_features[cluster_id], cls._item_id_maps[cluster_id], cls._item_features[cluster_id]

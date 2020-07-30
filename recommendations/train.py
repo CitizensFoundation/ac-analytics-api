@@ -1,20 +1,26 @@
+NUM_THREADS = 8
+
 import sys
 
 sys.path.append(".")
-
-from lightfm_model_cache import LightFmModelCache
-from lightfm import LightFM
 from lightfm.evaluation import auc_score
-from lightfm.cross_validation import random_train_test_split
-from lightfm.data import Dataset
 
+from datetime import datetime
+from lightfm_model_cache import LightFmModelCache
 from training_manager import RecTrainingManager
 
 cluster_id = 1
 
 training_manager = RecTrainingManager()
-model, user_id_map, user_features, item_id_map, item_features = training_manager.train(cluster_id)
+model, user_id_map, user_features, item_id_map, item_features, interactions = training_manager.train(cluster_id)
 
-print("After fit =", datetime.now().strftime("%H:%M:%S"))
+LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, 1)
 
-LightFmModelCache.save_model(model, user_id_map, user_features, item_id_map, item_features, 1)
+loaded_model, user_id_map, loaded_user_features, item_id_map, loaded_item_features = LightFmModelCache.get(cluster_id)
+
+test_auc = auc_score(loaded_model,
+                     interactions,
+                     item_features=loaded_item_features,
+                     user_features=loaded_user_features,
+                     num_threads=NUM_THREADS).mean()
+print('Train set AUC: %s' % test_auc)
