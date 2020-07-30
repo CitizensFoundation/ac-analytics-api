@@ -44,7 +44,7 @@ class RecommendationPrediction:
     if only_return_ids:
       only_ids = []
       for tuple in results_tuples:
-        only_ids.append(tuple[0])
+        only_ids.append(int(tuple[0]))
       print(only_ids)
       return only_ids[0:max_number];
     else:
