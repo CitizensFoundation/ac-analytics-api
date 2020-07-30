@@ -1,5 +1,5 @@
 NUM_THREADS = 8
-
+SAVE_LOAD_TEST = False
 import sys
 
 sys.path.append(".")
@@ -14,13 +14,14 @@ cluster_id = 1
 training_manager = RecTrainingManager()
 model, user_id_map, user_features, item_id_map, item_features, interactions = training_manager.train(cluster_id)
 
-LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, 1)
+LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, interactions, 1)
 
-loaded_model, user_id_map, loaded_user_features, item_id_map, loaded_item_features = LightFmModelCache.get(cluster_id)
+if SAVE_LOAD_TEST:
+  loaded_model, user_id_map, loaded_user_features, item_id_map, loaded_item_features = LightFmModelCache.get(cluster_id)
 
-test_auc = auc_score(loaded_model,
-                     interactions,
-                     item_features=loaded_item_features,
-                     user_features=loaded_user_features,
-                     num_threads=NUM_THREADS).mean()
-print('Train set AUC: %s' % test_auc)
+  test_auc = auc_score(loaded_model,
+                      interactions,
+                      item_features=loaded_item_features,
+                      user_features=loaded_user_features,
+                      num_threads=NUM_THREADS).mean()
+  print('Train set AUC: %s' % test_auc)

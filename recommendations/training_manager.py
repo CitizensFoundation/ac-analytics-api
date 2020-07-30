@@ -3,7 +3,7 @@ NUM_COMPONENTS = 30
 NUM_EPOCHS = 3
 ITEM_ALPHA = 1e-6
 
-# https://towardsdatascience.com/how-i-would-explain-building-lightfm-hybrid-recommenders-to-a-5-year-old-b6ee18571309
+# Originally based on this https://towardsdatascience.com/how-i-would-explain-building-lightfm-hybrid-recommenders-to-a-5-year-old-b6ee18571309
 # https://www.kaggle.com/niyamatalmass/lightfm-hybrid-recommendation-system
 # https://towardsdatascience.com/recommendation-system-in-python-lightfm-61c85010ce17
 # https://www.kaggle.com/khacnghia97/recommend-ligthfm
