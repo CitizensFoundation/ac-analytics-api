@@ -1,3 +1,7 @@
+NUM_THREADS = 4
+NUM_COMPONENTS = 30
+NUM_EPOCHS = 3
+ITEM_ALPHA = 1e-6
 
 # https://towardsdatascience.com/how-i-would-explain-building-lightfm-hybrid-recommenders-to-a-5-year-old-b6ee18571309
 # https://www.kaggle.com/niyamatalmass/lightfm-hybrid-recommendation-system
@@ -310,7 +314,7 @@ def format_users_features(features):
 
     return uf
 
-def create_interactions_and_features(events_list):
+def create_interactions_and_features(events_list, cluster_id):
     print("create_interactions_and_features")
     interactions = {}
     users_features = {}
@@ -382,7 +386,7 @@ def create_datasets(cluster_id):
 
     events_list = get_events_from_es(cluster_id)
 
-    dataframe_interactions, dataframe_users_features, dataframe_item_features, user_tuple, item_tuple = create_interactions_and_features(events_list)
+    dataframe_interactions, dataframe_users_features, dataframe_item_features, user_tuple, item_tuple = create_interactions_and_features(events_list, cluster_id)
 
     print(dataframe_interactions)
     print(dataframe_users_features)
@@ -423,31 +427,38 @@ def create_datasets(cluster_id):
 
 class RecTrainingManager:
     def train(self, cluster_id):
-        now = datetime.now()
-
-        current_time = now.strftime("%H:%M:%S")
-        print("Start Time =", current_time)
-
-        print("Loading")
+        print("Start Time =", datetime.now().strftime("%H:%M:%S"))
 
         dataset, interactions, weights, item_features, user_features = create_datasets(cluster_id)
-
         user_id_map, user_feature_map, item_id_map, item_feature_map = dataset.mapping()
 
-        print("Before make train =", datetime.now().strftime("%H:%M:%S"))
+        print("Before fit =", datetime.now().strftime("%H:%M:%S"))
+
+        no_comp, lr, ep = 30, 0.01, 20
+        model = LightFM(no_components=NUM_COMPONENTS, item_alpha=ITEM_ALPHA, loss='warp')
+        model.fit(
+            interactions,
+            item_features=item_features,
+            user_features=user_features,
+            sample_weight= weights,
+            epochs=NUM_EPOCHS,
+            num_threads=NUM_THREADS,
+            verbose=True)
+
+        print("After fit =", datetime.now().strftime("%H:%M:%S"))
+
+        return model, user_id_map, user_features, item_id_map, item_features
+
+    def train_with_test_data(self, cluster_id):
+        print("Start Time =", now.strftime("%H:%M:%S"))
+
+        dataset, interactions, weights, item_features, user_features = create_datasets(cluster_id)
+        user_id_map, user_feature_map, item_id_map, item_feature_map = dataset.mapping()
 
         train_data, test_data = random_train_test_split(interactions, random_state=np.random.RandomState(3))
         train_weights, test_weights = random_train_test_split(weights, random_state=np.random.RandomState(3))
 
-        #print(test_weights)
-        #print(X_test)
-
-        print("Before fit partial =", datetime.now().strftime("%H:%M:%S"))
-
-        NUM_THREADS = 4
-        NUM_COMPONENTS = 30
-        NUM_EPOCHS = 3
-        ITEM_ALPHA = 1e-6
+        print("Before fit =", datetime.now().strftime("%H:%M:%S"))
 
         no_comp, lr, ep = 30, 0.01, 20
         model = LightFM(no_components=NUM_COMPONENTS, item_alpha=ITEM_ALPHA, loss='warp')
@@ -462,4 +473,4 @@ class RecTrainingManager:
 
         print("After fit =", datetime.now().strftime("%H:%M:%S"))
 
-        return model, user_id_map, user_features, item_id_map, item_features
+        return model, user_id_map, user_features, item_id_map, item_features, train_data, test_data

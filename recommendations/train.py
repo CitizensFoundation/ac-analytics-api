@@ -17,18 +17,4 @@ model, user_id_map, user_features, item_id_map, item_features = training_manager
 
 print("After fit =", datetime.now().strftime("%H:%M:%S"))
 
-test_auc = auc_score(model,
-                     train_data,
-                     item_features=item_features,
-                     user_features=user_features,
-                     num_threads=NUM_THREADS).mean()
-print('Train set AUC: %s' % test_auc)
-
-test_auc = auc_score(model,
-                     test_interactions=test_data,
-                     item_features=item_features,
-                     user_features=user_features,
-                     num_threads=NUM_THREADS).mean()
-print('Test set AUC: %s' % test_auc)
-
 LightFmModelCache.save_model(model, user_id_map, user_features, item_id_map, item_features, 1)
