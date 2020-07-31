@@ -36,7 +36,7 @@ def getLemmatizedText(name, content, language):
   cleaned = strip_tags(cleaned)
   cleaned = strip_punctuation(cleaned)
   cleaned = strip_numeric(cleaned)
-  cleaned = strip_short(cleaned)
+  cleaned = strip_short(cleaned, 1)
   cleaned = strip_multiple_whitespaces(cleaned)
   cleaned = cleaned.lower()
 
