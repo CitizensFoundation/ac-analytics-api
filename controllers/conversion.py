@@ -45,8 +45,6 @@ es_url = os.environ['AC_ANALYTICS_ES_URL'] if os.environ.get('AC_ANALYTICS_ES_UR
 
 master_api_key = os.environ['AC_ANALYTICS_MASTER_API_KEY']
 
-parser = reqparse.RequestParser()
-
 def myprint(text):
   #print(text)
   t = text

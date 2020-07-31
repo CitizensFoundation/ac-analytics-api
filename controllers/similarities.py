@@ -60,8 +60,6 @@ GROUP_TRIGGER_DEBOUNCE_TIME_SEC=3*60
 POST_TRIGGER_DEBOUNCE_TIME_SEC=3*60
 ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=60
 
-parser = reqparse.RequestParser()
-
 es = Elasticsearch(es_url)
 queue = Queue(connection=conn)
 
@@ -82,7 +80,9 @@ def convertToNumbersWhereNeeded(inDict):
 class DomainList(Resource):
     def post(self, cluster_id, domain_id):
         print("Call for: POST /domains")
+        parser = reqparse.RequestParser()
         parser.add_argument('name')
+        parser.add_argument('description')
         parser.add_argument('status')
         parser.add_argument('language')
         parser.add_argument('created_at')
@@ -106,7 +106,9 @@ class DomainList(Resource):
 class CommunityList(Resource):
     def post(self, cluster_id, community_id):
         print("Call for: POST /communities")
+        parser = reqparse.RequestParser()
         parser.add_argument('name')
+        parser.add_argument('description')
         parser.add_argument('language')
         parser.add_argument('status')
         parser.add_argument('created_at')
@@ -129,7 +131,9 @@ class CommunityList(Resource):
 class GroupList(Resource):
     def post(self, cluster_id, group_id):
         print("Call for: POST /groups")
+        parser = reqparse.RequestParser()
         parser.add_argument('name')
+        parser.add_argument('objectives')
         parser.add_argument('status')
         parser.add_argument('language')
         parser.add_argument('created_at')
@@ -202,6 +206,7 @@ class PostList(Resource):
 
     def post(self, cluster_id, post_id):
         print("Call for: POST /posts")
+        parser = reqparse.RequestParser()
         parser.add_argument('name')
         parser.add_argument('description')
         parser.add_argument('domain_id')
@@ -308,6 +313,7 @@ class PointList(Resource):
             PointList.triggerPointGroupQueueTimer[rawPoint.post_id].start()
 
     def post(self, cluster_id, point_id):
+        parser = reqparse.RequestParser()
         parser.add_argument('content')
         parser.add_argument('post_id')
         parser.add_argument('domain_id')
@@ -361,6 +367,7 @@ class PointList(Resource):
 class FindSimilarPosts(Resource):
     def post(self, cluster_id):
         print("Call for: POST /find_similar")
+        parser = reqparse.RequestParser()
         parser.add_argument('content')
         parser.add_argument('name')
         parser.add_argument('language')

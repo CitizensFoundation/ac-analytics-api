@@ -30,12 +30,11 @@ from elasticsearch import Elasticsearch, NotFoundError
 
 es_url = os.environ['AC_ANALYTICS_ES_URL'] if os.environ.get('AC_ANALYTICS_ES_URL')!=None else 'localhost:9200'
 
-parser = reqparse.RequestParser()
-
 es = Elasticsearch(es_url)
 
 class AddPostAction(Resource):
     def post(self, cluster_id):
+        parser = reqparse.RequestParser()
         parser.add_argument('action')
         parser.add_argument('esId')
         parser.add_argument('userId')
@@ -50,6 +49,7 @@ class AddPostAction(Resource):
 
 class AddManyPostActions(Resource):
     def post(self, cluster_id):
+        parser = reqparse.RequestParser()
         parser.add_argument('posts', action='append')
         post_data = parser.parse_args()
         for one_post in post_data['posts']:
@@ -60,6 +60,7 @@ class AddManyPostActions(Resource):
 
 class GetDomainRecommendations(Resource):
     def put(self, cluster_id, domain_id, user_id):
+        parser = reqparse.RequestParser()
         parser.add_argument('user_agent')
         parser.add_argument('ip_address')
         parser.add_argument('dateOptions')
@@ -69,6 +70,7 @@ class GetDomainRecommendations(Resource):
 
 class GetCommunityRecommendations(Resource):
     def put(self, cluster_id, community_id, user_id):
+        parser = reqparse.RequestParser()
         parser.add_argument('user_agent')
         parser.add_argument('ip_address')
         parser.add_argument('date_options')
@@ -78,6 +80,7 @@ class GetCommunityRecommendations(Resource):
 
 class GetGroupRecommendations(Resource):
     def put(self, cluster_id, group_id, user_id):
+        parser = reqparse.RequestParser()
         parser.add_argument('user_agent')
         parser.add_argument('ip_address')
         parser.add_argument('date_options')

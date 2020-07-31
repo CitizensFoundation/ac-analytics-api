@@ -102,32 +102,35 @@ class RecommendationPrediction:
 
     print("User id", user_id)
 
-    if user_id=="-1" or user_id not in user_id_map:
-      print("New user")
-      new_user_features = self.format_newuser_input(user_features_map, self.new_user_feature_list())
-      predictions = model.predict(0, search_for_item_ids, user_features=new_user_features)
+    if len(search_for_item_ids)>0:
+      if user_id=="-1" or user_id not in user_id_map:
+        print("New user")
+        new_user_features = self.format_newuser_input(user_features_map, self.new_user_feature_list())
+        predictions = model.predict(0, search_for_item_ids, user_features=new_user_features)
+      else:
+        print("Known user")
+        user_x = user_id_map[user_id]
+        predictions = model.predict(user_x, search_for_item_ids)
+
+      i = 0
+      results_tuples = []
+      for post_id in search_for_post_ids:
+        results_tuples.append((post_id, predictions[i]))
+        i = i + 1
+
+      results_tuples.sort(key=lambda x:x[1], reverse = True)
+
+      if only_return_ids:
+        only_ids = []
+        for tuple in results_tuples:
+          only_ids.append(int(tuple[0]))
+  #      print(only_ids)
+        print(len(only_ids))
+        return only_ids[0:max_number];
+      else:
+        return results_tuples[0:max_number]
     else:
-      print("Known user")
-      user_x = user_id_map[user_id]
-      predictions = model.predict(user_x, search_for_item_ids)
-
-    i = 0
-    results_tuples = []
-    for post_id in search_for_post_ids:
-      results_tuples.append((post_id, predictions[i]))
-      i = i + 1
-
-    results_tuples.sort(key=lambda x:x[1], reverse = True)
-
-    if only_return_ids:
-      only_ids = []
-      for tuple in results_tuples:
-        only_ids.append(int(tuple[0]))
-#      print(only_ids)
-      print(len(only_ids))
-      return only_ids[0:max_number];
-    else:
-      return results_tuples[0:max_number]
+      return []
 
   #TODO: Optimize this and cache the es connection in a class var
   def get_es_post_ids(self, search_terms):

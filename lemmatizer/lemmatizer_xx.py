@@ -70,7 +70,7 @@ class LemmatizerMultilanguageClass:
             words =  self.chinese(text)
         elif language=='da':
             if self.danish==None:
-                self.danish = da_core_web_sm.load()
+                self.danish = da_core_news_sm.load()
             words =  self.danish(text)
         elif language=='de':
             if self.german==None:
