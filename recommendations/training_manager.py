@@ -351,7 +351,7 @@ def create_interactions_and_features(events_list, cluster_id):
         elif action == 'point-unhelpful':
             rating = 1
         else:
-            print("Error can't find "+action)
+            print("Error can't find action named "+action)
 
         if rating>0:
             interactions[post_id][user_id] += rating
