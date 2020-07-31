@@ -231,7 +231,7 @@ class PostList(Resource):
             esPost = convertToNumbersWhereNeeded(rawPost)
             if (len(rawPost.get("description"))>MIN_CHARACTER_LENGTH_FOR_PROCESSING):
                 print("Post len: "+str(len(rawPost.get("description")))+" words: "+str(len(rawPost.get("description").split())))
-                esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"]+" "+esPost["description"], esPost.get("language"))
+                esPost["lemmatizedContent"]=getLemmatizedText(esPost["name"], esPost["description"], esPost.get("language"))
             else:
                 esPost['tooShort']=True
                 print("Warning: POST TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_PROCESSING)+ " current: "+str(len(rawPost.get("description"))))
@@ -336,7 +336,7 @@ class PointList(Resource):
 
             if (len(esPoint.get("content"))>MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING):
                 print("Point len: "+str(len(esPoint.get("content")))+" words: "+str(len(esPoint.get("content").split())))
-                esPoint["lemmatizedContent"]=getLemmatizedText(esPoint["content"], esPoint.get("language"))
+                esPoint["lemmatizedContent"]=getLemmatizedText("", esPoint["content"], esPoint.get("language"))
             else:
                 esPoint['tooShort']=True
                 print("Warning: POINT TOO SHORT FOR PROCESSING - min chars: "+str(MIN_CHARACTER_LENGTH_FOR_POINT_PROCESSING)+ " current: "+str(len(esPoint.get("content"))))
@@ -362,6 +362,7 @@ class FindSimilarPosts(Resource):
     def post(self, cluster_id):
         print("Call for: POST /find_similar")
         parser.add_argument('content')
+        parser.add_argument('name')
         parser.add_argument('language')
         parser.add_argument('domain_id')
         parser.add_argument('community_id')
@@ -371,7 +372,7 @@ class FindSimilarPosts(Resource):
         print(rawFind)
         esFind = convertToNumbersWhereNeeded(rawFind)
         language = esFind.get("language")
-        lemmatizedContent=getLemmatizedText(esFind["content"],language)
+        lemmatizedContent=getLemmatizedText(esFind["name"], esFind["content"],language)
         postSimilarity = PostSimilarity()
 
         similar_content = postSimilarity.getSimilarContentPost(lemmatizedContent, language, rawFind)

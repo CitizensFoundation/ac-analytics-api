@@ -6,8 +6,10 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 
 # Yields all lemmas in every sentences
 # Structure: [file[sent[lemmas]]]
-def getLemmatizedTextIS(text):
-  lemmas = ' '.join(lemmatizeParse(text))
+def getLemmatizedTextIS(name, content):
+  lemmas = ' '.join(lemmatizeParse(name))
+  lemmas += ' '
+  lemmas += ' '.join(lemmatizeParse(content))
   return lemmas
 
 def lemmatizeParse(text):
@@ -17,13 +19,14 @@ def lemmatizeParse(text):
   lemmas = []
   sents = reynir.parse(text)
   for sent in sents['sentences']:
+#      print(sent)
       try:
           if sent.lemmas==None:
             raise AttributeError()
           else:
             lemmas.append(' '.join(sent.lemmas))
       except AttributeError:
-          print("Warning: lemmatize AttributeError from Reynir")
+          print("ERROR: lemmatize AttributeError from Reynir", sent)
           #TODO: CHECK HACKY LINE BELOW RVB
           sent = str(sent)
           bin = BIN_Compressed()

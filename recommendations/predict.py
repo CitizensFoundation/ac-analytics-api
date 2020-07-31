@@ -161,16 +161,10 @@ class RecommendationPrediction:
           post_date = dateutil.parser.isoparse(post["_source"]['created_at'])
           if (post_date>after_date):
             final_list.append(post)
-#            print("Keeping", post_date)
-#            print(len(final_list))
-#         else:
-#           print("Skipping", post_date)
-#        else:
-#          final_list.append(post)
-#          print(len(final_list))
+        else:
+          print("Error no created_at for post", post)
     else:
-   #   final_list = result_list
-      print("HO")
+      final_list = result_list
 
     print(len(final_list))
 
