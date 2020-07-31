@@ -1,9 +1,12 @@
-NUM_THREADS = 8
+NUM_THREADS = 4
 SAVE_LOAD_TEST = False
+
+import dateutil.parser
 import sys
 import os
 import numpy as np  # linear algebra
 from user_agents import parse
+import dateutil.parser
 
 sys.path.append(".")
 
@@ -120,7 +123,7 @@ class RecommendationPrediction:
       only_ids = []
       for tuple in results_tuples:
         only_ids.append(int(tuple[0]))
-      print(only_ids)
+#      print(only_ids)
       print(len(only_ids))
       return only_ids[0:max_number];
     else:
@@ -145,11 +148,36 @@ class RecommendationPrediction:
         scroll='3m'
     )
 
+    result_list = list(resp)
+
+    final_list = []
+
+    if 'date_options' in self._user_data:
+      after_date = dateutil.parser.isoparse(eval(self._user_data['date_options'])['after'])
+      print(after_date)
+
+      for post in result_list:
+        if ('created_at' in post['_source']):
+          post_date = dateutil.parser.isoparse(post["_source"]['created_at'])
+          if (post_date>after_date):
+            final_list.append(post)
+#            print("Keeping", post_date)
+#            print(len(final_list))
+#         else:
+#           print("Skipping", post_date)
+#        else:
+#          final_list.append(post)
+#          print(len(final_list))
+    else:
+   #   final_list = result_list
+      print("HO")
+
+    print(len(final_list))
+
     def get_only_id_strs(n):
         return str(n["_id"])
 
-    result_list = list(resp)
-    only_ids = list(map(get_only_id_strs, result_list))
+    only_ids = list(map(get_only_id_strs, final_list))
     return only_ids
 
   def predict_for_collection(self, user_id, search_terms):

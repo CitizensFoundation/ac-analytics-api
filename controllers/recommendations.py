@@ -62,6 +62,7 @@ class GetDomainRecommendations(Resource):
     def put(self, cluster_id, domain_id, user_id):
         parser.add_argument('user_agent')
         parser.add_argument('ip_address')
+        parser.add_argument('dateOptions')
         user_data = parser.parse_args()
         prediction = RecommendationPrediction(cluster_id, user_data)
         return jsonify(prediction.predict_for_domain(domain_id,user_id))
@@ -70,6 +71,7 @@ class GetCommunityRecommendations(Resource):
     def put(self, cluster_id, community_id, user_id):
         parser.add_argument('user_agent')
         parser.add_argument('ip_address')
+        parser.add_argument('date_options')
         user_data = parser.parse_args()
         prediction = RecommendationPrediction(cluster_id, user_data)
         return jsonify(prediction.predict_for_community(community_id,user_id))
@@ -78,6 +80,7 @@ class GetGroupRecommendations(Resource):
     def put(self, cluster_id, group_id, user_id):
         parser.add_argument('user_agent')
         parser.add_argument('ip_address')
+        parser.add_argument('date_options')
         user_data = parser.parse_args()
         prediction = RecommendationPrediction(cluster_id, user_data)
         return jsonify(prediction.predict_for_group(group_id,user_id))
