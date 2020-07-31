@@ -46,6 +46,9 @@ from controllers.conversion import ConvertDocxSurveyToJSON
 
 from controllers.recommendations import AddPostAction
 from controllers.recommendations import AddManyPostActions
+from controllers.recommendations import GetDomainRecommendations
+from controllers.recommendations import GetCommunityRecommendations
+from controllers.recommendations import GetGroupRecommendations
 
 if os.environ.get('AC_ANALYTICS_API_URL'):
     api_url = os.environ['AC_ANALYTICS_API_URL']
@@ -120,6 +123,10 @@ api.add_resource(ConvertDocxSurveyToJSON, api_url+'/convert_doc_x_survey_to_json
 api.add_resource(AddPostAction, api_url+'/addPostAction/<cluster_id>')
 
 api.add_resource(AddManyPostActions, api_url+'/addManyPostActions/<cluster_id>')
+
+api.add_resource(GetDomainRecommendations, api_url+'/recommendations/domain/<cluster_id>/<domain_id>/<user_id>')
+api.add_resource(GetCommunityRecommendations, api_url+'/recommendations/community/<cluster_id>/<community_id>/<user_id>')
+api.add_resource(GetGroupRecommendations, api_url+'/recommendations/group/<cluster_id>/<group_id>/<user_id>')
 
 
 # Anonymized export APIs

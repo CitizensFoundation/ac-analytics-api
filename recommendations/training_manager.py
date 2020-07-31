@@ -15,7 +15,7 @@ ITEM_ALPHA = 1e-6
 # TODO: Research/make use of this: https://engineering.linkedin.com/blog/2020/open-sourcing-detext
 # TODO: Try to make single users of users with multiple accts, like Facebook login and SAML login
 
-from lightfm_model_cache import LightFmModelCache
+from recommendations.lightfm_model_cache import LightFmModelCache
 from elasticsearch import Elasticsearch, helpers, exceptions
 import json
 
@@ -174,9 +174,14 @@ def setup_user_features(user_features_dict, event):
 
     if 'user_agent' in event["_source"]:
         user_agent = parse(event["_source"]['user_agent'])
-        browser_family = user_agent.browser.family
+        is_mobile = user_agent.is_mobile
+        is_tablet = user_agent.is_tablet
+        is_pc = user_agent.is_pc
+        is_bot = user_agent.is_bot
 
         os_family = user_agent.os.family
+
+        browser_family = user_agent.browser.family
 
         device_family = user_agent.device.family
         device_brand = user_agent.device.brand
@@ -446,7 +451,7 @@ class RecTrainingManager:
 
         print("After fit =", datetime.now().strftime("%H:%M:%S"))
 
-        return model, user_id_map, user_features, item_id_map, item_features, interactions
+        return model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map
 
     def train_with_test_data(self, cluster_id):
         print("Start Time =", datetime.now().strftime("%H:%M:%S"))

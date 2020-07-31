@@ -24,6 +24,7 @@ from threading import Timer
 
 from flask import jsonify
 from flask_restful import reqparse, Resource
+from recommendations.predict import RecommendationPrediction
 
 from elasticsearch import Elasticsearch, NotFoundError
 
@@ -32,8 +33,6 @@ es_url = os.environ['AC_ANALYTICS_ES_URL'] if os.environ.get('AC_ANALYTICS_ES_UR
 parser = reqparse.RequestParser()
 
 es = Elasticsearch(es_url)
-
-def get_recommendations
 
 class AddPostAction(Resource):
     def post(self, cluster_id):
@@ -59,3 +58,27 @@ class AddManyPostActions(Resource):
             es.update(index='post_actions_'+cluster_id,id=dict_post['esId'],body={'doc':dict_post,'doc_as_upsert':True})
         return jsonify({"ok":"true"})
 
+class GetDomainRecommendations(Resource):
+    def put(self, cluster_id, domain_id, user_id):
+        parser.add_argument('user_agent')
+        parser.add_argument('ip_address')
+        user_data = parser.parse_args()
+        prediction = RecommendationPrediction(cluster_id, user_data)
+        return jsonify(prediction.predict_for_domain(domain_id,user_id))
+
+class GetCommunityRecommendations(Resource):
+    def put(self, cluster_id, community_id, user_id):
+        parser.add_argument('user_agent')
+        parser.add_argument('ip_address')
+        user_data = parser.parse_args()
+        prediction = RecommendationPrediction(cluster_id, user_data)
+        return jsonify(prediction.predict_for_community(community_id,user_id))
+
+class GetGroupRecommendations(Resource):
+    def put(self, cluster_id, group_id, user_id):
+        parser.add_argument('user_agent')
+        parser.add_argument('ip_address')
+        user_data = parser.parse_args()
+        print(user_data)
+        prediction = RecommendationPrediction(cluster_id, user_data)
+        return jsonify(prediction.predict_for_group(group_id,user_id))

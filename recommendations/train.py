@@ -6,15 +6,15 @@ sys.path.append(".")
 from lightfm.evaluation import auc_score
 
 from datetime import datetime
-from lightfm_model_cache import LightFmModelCache
-from training_manager import RecTrainingManager
+from recommendations.lightfm_model_cache import LightFmModelCache
+from recommendations.training_manager import RecTrainingManager
 
-cluster_id = 1
+cluster_id = int(sys.argv[1])
 
 training_manager = RecTrainingManager()
-model, user_id_map, user_features, item_id_map, item_features, interactions = training_manager.train(cluster_id)
+model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map = training_manager.train(cluster_id)
 
-LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, interactions, 1)
+LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map, 1)
 
 if SAVE_LOAD_TEST:
   loaded_model, user_id_map, loaded_user_features, item_id_map, loaded_item_features = LightFmModelCache.get(cluster_id)
