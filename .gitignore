@@ -2,6 +2,6 @@ __pycache__
 __pycache__/
 w2v_models
 d2v_models
-
+rec_models
 *.csv
 recommendations/*.csv

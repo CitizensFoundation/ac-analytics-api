@@ -44,7 +44,7 @@ class AddPostAction(Resource):
         parser.add_argument('user_agent')
         parser.add_argument('ip_address')
         data = parser.parse_args()
-
+        print(data)
         es.update(index='post_actions_'+cluster_id,id=data['esId'],body={'doc':data,'doc_as_upsert':True})
         return jsonify({"ok":"true"})
 
@@ -79,6 +79,5 @@ class GetGroupRecommendations(Resource):
         parser.add_argument('user_agent')
         parser.add_argument('ip_address')
         user_data = parser.parse_args()
-        print(user_data)
         prediction = RecommendationPrediction(cluster_id, user_data)
         return jsonify(prediction.predict_for_group(group_id,user_id))

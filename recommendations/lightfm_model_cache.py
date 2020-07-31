@@ -44,6 +44,7 @@ class LightFmModelCache(object):
 
     @classmethod
     def load(cls, cluster_id):
+        print("LOADING MODEL CACHE")
         cls._models[cluster_id] = pickle.load(
             open(get_lightfm_model_filename(cluster_id), "rb"))
 

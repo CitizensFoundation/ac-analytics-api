@@ -89,13 +89,13 @@ class RecommendationPrediction:
   def predict_for_post_ids(self, user_id, post_ids, max_number = 10000, only_return_ids = True):
     model, user_id_map, user_features, item_id_map, item_features, interactions, user_features_map = LightFmModelCache.get(self._cluster_id)
 
-
     search_for_item_ids = []
     search_for_post_ids = []
 
     for post_id in post_ids:
-      search_for_item_ids.append(item_id_map[post_id])
-      search_for_post_ids.append(post_id)
+      if post_id in item_id_map:
+        search_for_item_ids.append(item_id_map[post_id])
+        search_for_post_ids.append(post_id)
 
     print("User id", user_id)
 
@@ -121,6 +121,7 @@ class RecommendationPrediction:
       for tuple in results_tuples:
         only_ids.append(int(tuple[0]))
       print(only_ids)
+      print(len(only_ids))
       return only_ids[0:max_number];
     else:
       return results_tuples[0:max_number]
