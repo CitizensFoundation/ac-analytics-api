@@ -76,7 +76,7 @@ class AddPostAction(Resource):
                 func=start_recommendation_training, args=("rec_training", {
                     "cluster_id": cluster_id,
                     "lockFilename": lockFilename
-                    }), result_ttl=1*60*60*1000)
+                    }), result_ttl=1*60*60*1000, timeout=600)
 
             AddPostAction.triggerTrainingTimer[cluster_id]=None;
 

@@ -414,7 +414,7 @@ class TriggerDomainPostTraining(Resource):
                 "domain_id": domain_id,
                 "community_id": None,
                 "group_id": None,
-                }), result_ttl=1*60*60*1000)
+                }), result_ttl=1*60*60*1000, timeout=600)
 
 class TriggerCommunityPostTraining(Resource):
     def put(self, cluster_id, community_id):
@@ -424,7 +424,7 @@ class TriggerCommunityPostTraining(Resource):
                 "domain_id": None,
                 "community_id": community_id,
                 "group_id": None,
-                }), result_ttl=1*60*60*1000)
+                }), result_ttl=1*60*60*1000, timeout=600)
 
 class TriggerGroupPostTraining(Resource):
     def put(self, cluster_id, group_id):
@@ -434,7 +434,7 @@ class TriggerGroupPostTraining(Resource):
                 "domain_id": None,
                 "community_id": None,
                 "group_id": group_id,
-                }), result_ttl=1*60*60*1000)
+                }), result_ttl=1*60*60*1000, timeout=600)
 
 class TriggerPostPointsTraining(Resource):
     def put(self, cluster_id, post_id):
@@ -445,4 +445,4 @@ class TriggerPostPointsTraining(Resource):
                 "community_id": None,
                 "group_id": None,
                 "post_id": post_id
-                }), result_ttl=1*60*60*1000)
+                }), result_ttl=1*60*60*1000, timeout=600)
