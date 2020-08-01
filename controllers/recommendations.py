@@ -50,11 +50,11 @@ def deleteLockFileIfNeeded(object):
       os.remove(object["lockFilename"])
 
 def start_recommendation_training(type, object):
+    deleteLockFileIfNeeded(object)
     cluster_id = object["cluster_id"]
     print("start_recommendation_training", cluster_id)
     training_manager = RecTrainingManager()
     model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map = training_manager.train(cluster_id)
-    deleteLockFileIfNeeded(object)
     LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map, cluster_id)
 
 class AddPostAction(Resource):
@@ -63,22 +63,13 @@ class AddPostAction(Resource):
     def addToTriggerQueue(self, cluster_id):
         print("addToTriggerRecommendationsQueue", cluster_id)
 
-        lockFilename = "/tmp/acaRqInQueueRecommendations_{}".format(cluster_id);
+        queue.enqueue_call(
+            func=start_recommendation_training, args=("rec_training", {
+                "cluster_id": cluster_id,
+                "lockFilename": lockFilename
+                }), result_ttl=1*60*60*1000, timeout=600)
 
-        if path.exists(lockFilename):
-            print("Already in queue: "+lockFilename)
-        else:
-            f = open(lockFilename, "w")
-            f.write("x")
-            f.close()
-
-            queue.enqueue_call(
-                func=start_recommendation_training, args=("rec_training", {
-                    "cluster_id": cluster_id,
-                    "lockFilename": lockFilename
-                    }), result_ttl=1*60*60*1000, timeout=600)
-
-            AddPostAction.triggerTrainingTimer[cluster_id]=None;
+        AddPostAction.triggerTrainingTimer[cluster_id]=None;
 
     def post(self, cluster_id):
         parser = reqparse.RequestParser()
@@ -94,9 +85,18 @@ class AddPostAction(Resource):
         es.update(index='post_actions_'+cluster_id,id=data['esId'],body={'doc':data,'doc_as_upsert':True})
 
         if AddPostAction.triggerTrainingTimer.get(cluster_id)==None:
-            print("Added rec training trigger timer", REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC)
-            AddPostAction.triggerTrainingTimer[cluster_id] = Timer(REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToTriggerQueue, [cluster_id])
-            AddPostAction.triggerTrainingTimer[cluster_id].start()
+            lockFilename = "/tmp/acaRqInQueueRecommendations_{}".format(cluster_id);
+
+            if path.exists(lockFilename):
+                print("Already in queue: "+lockFilename)
+            else:
+                f = open(lockFilename, "w")
+                f.write("x")
+                f.close()
+
+                print("Added rec training trigger timer", REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC)
+                AddPostAction.triggerTrainingTimer[cluster_id] = Timer(REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToTriggerQueue, [cluster_id])
+                AddPostAction.triggerTrainingTimer[cluster_id].start()
 
         return jsonify({"ok":"true"})
 
