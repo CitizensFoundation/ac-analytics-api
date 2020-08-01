@@ -58,7 +58,7 @@ def start_recommendation_training(type, object):
     LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map, cluster_id)
 
 class AddPostAction(Resource):
-    triggerTrainingTimer = None
+    triggerTrainingTimer = {}
 
     def addToTriggerQueue(self, cluster_id):
         print("addToTriggerRecommendationsQueue", cluster_id)
@@ -78,7 +78,7 @@ class AddPostAction(Resource):
                     "lockFilename": lockFilename
                     }), result_ttl=1*60*60*1000)
 
-            AddPostAction.triggerTrainingTimer=None;
+            AddPostAction.triggerTrainingTimer[cluster_id]=None;
 
     def post(self, cluster_id):
         parser = reqparse.RequestParser()
@@ -93,10 +93,10 @@ class AddPostAction(Resource):
         print(data)
         es.update(index='post_actions_'+cluster_id,id=data['esId'],body={'doc':data,'doc_as_upsert':True})
 
-        if AddPostAction.triggerTrainingTimer==None:
+        if AddPostAction.triggerTrainingTimer.get(cluster_id)==None:
             print("Added rec training trigger timer", REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC)
-            AddPostAction.triggerTrainingTimer = Timer(REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToTriggerQueue, [cluster_id])
-            AddPostAction.triggerTrainingTimer.start()
+            AddPostAction.triggerTrainingTimer[cluster_id] = Timer(REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToTriggerQueue, [cluster_id])
+            AddPostAction.triggerTrainingTimer[cluster_id].start()
 
         return jsonify({"ok":"true"})
 
