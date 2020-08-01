@@ -309,8 +309,8 @@ class PointList(Resource):
             PointList.triggerPointGroupQueueTimer[rawPoint.group_id].start()
 
         if PointList.triggerPointPostQueueTimer.get(rawPoint.post_id)==None:
-            PointList.triggerPointGroupQueueTimer[rawPoint.post_id] = Timer(POST_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToPointTriggerQueue, [cluster_id, None, None, None, rawPoint.post_id])
-            PointList.triggerPointGroupQueueTimer[rawPoint.post_id].start()
+            PointList.triggerPointPostQueueTimer[rawPoint.post_id] = Timer(POST_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToPointTriggerQueue, [cluster_id, None, None, None, rawPoint.post_id])
+            PointList.triggerPointPostQueueTimer[rawPoint.post_id].start()
 
     def post(self, cluster_id, point_id):
         parser = reqparse.RequestParser()

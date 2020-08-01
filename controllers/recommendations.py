@@ -21,18 +21,65 @@ import sys
 import json
 
 from threading import Timer
+import os
+import os.path
+from os import path
 
 from flask import jsonify
 from flask_restful import reqparse, Resource
 from recommendations.predict import RecommendationPrediction
+from recommendations.training_manager import RecTrainingManager
+from recommendations.lightfm_model_cache import LightFmModelCache
+
+from rq import Queue
+from rq.job import Job
+from worker import conn
 
 from elasticsearch import Elasticsearch, NotFoundError
 
 es_url = os.environ['AC_ANALYTICS_ES_URL'] if os.environ.get('AC_ANALYTICS_ES_URL')!=None else 'localhost:9200'
 
 es = Elasticsearch(es_url)
+queue = Queue(connection=conn)
+
+REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC = 60*3
+
+def deleteLockFileIfNeeded(object):
+  if object["lockFilename"]!=None:
+    if os.path.exists(object["lockFilename"]):
+      os.remove(object["lockFilename"])
+
+def start_recommendation_training(type, object):
+    deleteLockFileIfNeeded(object)
+    cluster_id = object["cluster_id"]
+    print("start_recommendation_training", cluster_id)
+    training_manager = RecTrainingManager()
+    model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map = training_manager.train(cluster_id)
+    LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map, cluster_id)
 
 class AddPostAction(Resource):
+    triggerTrainingTimer = None
+
+    def addToTriggerQueue(self, cluster_id):
+        print("addToTriggerRecommendationsQueue", cluster_id)
+
+        lockFilename = "/tmp/acaRqInQueueRecommendations_{}".format(cluster_id);
+
+        if path.exists(lockFilename):
+            print("Already in queue: "+lockFilename)
+        else:
+            f = open(lockFilename, "w")
+            f.write("x")
+            f.close()
+
+            queue.enqueue_call(
+                func=start_recommendation_training, args=("rec_training", {
+                    "cluster_id": cluster_id,
+                    "lockFilename": lockFilename
+                    }), result_ttl=1*60*60*1000)
+
+            AddPostAction.triggerTrainingTimer=None;
+
     def post(self, cluster_id):
         parser = reqparse.RequestParser()
         parser.add_argument('action')
@@ -45,6 +92,12 @@ class AddPostAction(Resource):
         data = parser.parse_args()
         print(data)
         es.update(index='post_actions_'+cluster_id,id=data['esId'],body={'doc':data,'doc_as_upsert':True})
+
+        if AddPostAction.triggerTrainingTimer==None:
+            print("Added rec training trigger timer", REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC)
+            AddPostAction.triggerTrainingTimer = Timer(REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToTriggerQueue, [cluster_id])
+            AddPostAction.triggerTrainingTimer.start()
+
         return jsonify({"ok":"true"})
 
 class AddManyPostActions(Resource):

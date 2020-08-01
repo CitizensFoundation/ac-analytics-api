@@ -26,7 +26,7 @@ def lemmatizeParse(text):
           else:
             lemmas.append(' '.join(sent.lemmas))
       except AttributeError:
-          print("ERROR: lemmatize AttributeError from Reynir", sent)
+          print("WARNING: lemmatize AttributeError from Reynir", sent)
           #TODO: CHECK HACKY LINE BELOW RVB
           sent = str(sent)
           bin = BIN_Compressed()

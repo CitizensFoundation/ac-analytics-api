@@ -1,6 +1,6 @@
-NUM_THREADS = 4
+NUM_THREADS = 8
 NUM_COMPONENTS = 30
-NUM_EPOCHS = 3
+NUM_EPOCHS = 42
 ITEM_ALPHA = 1e-6
 
 # Originally based on this https://towardsdatascience.com/how-i-would-explain-building-lightfm-hybrid-recommenders-to-a-5-year-old-b6ee18571309
