@@ -87,6 +87,7 @@ class AddPostAction(Resource):
         if AddPostAction.triggerTrainingTimer.get(cluster_id)==None:
             lockFilename = "/tmp/acaRqInQueueRecommendations_{}".format(cluster_id);
 
+            #TODO: Fix this, still sometimes running multiple paralell trainings
             if path.exists(lockFilename):
                 print("Already in queue: "+lockFilename, file=sys.stderr)
             else:
