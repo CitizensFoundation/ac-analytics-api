@@ -60,7 +60,7 @@ def start_recommendation_training(type, object):
 class AddPostAction(Resource):
     triggerTrainingTimer = {}
 
-    def addToTriggerQueue(self, cluster_id):
+    def addToTriggerQueue(self, cluster_id, lockFilename):
         print("addToTriggerRecommendationsQueue", cluster_id)
 
         queue.enqueue_call(
@@ -95,7 +95,7 @@ class AddPostAction(Resource):
                 f.close()
 
                 print("Added rec training trigger timer", REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC)
-                AddPostAction.triggerTrainingTimer[cluster_id] = Timer(REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToTriggerQueue, [cluster_id])
+                AddPostAction.triggerTrainingTimer[cluster_id] = Timer(REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToTriggerQueue, [cluster_id, lockFilename])
                 AddPostAction.triggerTrainingTimer[cluster_id].start()
 
         return jsonify({"ok":"true"})
