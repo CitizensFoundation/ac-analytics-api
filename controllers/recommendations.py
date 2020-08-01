@@ -52,7 +52,7 @@ def deleteLockFileIfNeeded(object):
 def start_recommendation_training(type, object):
     deleteLockFileIfNeeded(object)
     cluster_id = object["cluster_id"]
-    print("start_recommendation_training", cluster_id)
+    print("start_recommendation_training", cluster_id, file=sys.stderr)
     training_manager = RecTrainingManager()
     model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map = training_manager.train(cluster_id)
     LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map, cluster_id)
@@ -88,7 +88,7 @@ class AddPostAction(Resource):
             lockFilename = "/tmp/acaRqInQueueRecommendations_{}".format(cluster_id);
 
             if path.exists(lockFilename):
-                print("Already in queue: "+lockFilename)
+                print("Already in queue: "+lockFilename, file=sys.stderr)
             else:
                 f = open(lockFilename, "w")
                 f.write("x")
