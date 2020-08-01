@@ -1,5 +1,5 @@
-# Copyright (C) 2019-2020 Íbúar ses / Citizens Foundation Iceland / Citizens Foundation America
-# Authors  Robert Bjarnason & Atli Jasonarson
+Copyright (C) 2019-2020 Íbúar ses / Citizens Foundation Iceland / Citizens Foundation America
+Authors  Robert Bjarnason & Atli Jasonarson
 
 Start service
 AC_ANALYTICS_MASTER_API_KEY=aVerySecretKey python3 api.py
