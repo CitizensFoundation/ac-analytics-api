@@ -50,11 +50,11 @@ def deleteLockFileIfNeeded(object):
       os.remove(object["lockFilename"])
 
 def start_recommendation_training(type, object):
-    deleteLockFileIfNeeded(object)
     cluster_id = object["cluster_id"]
     print("start_recommendation_training", cluster_id)
     training_manager = RecTrainingManager()
     model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map = training_manager.train(cluster_id)
+    deleteLockFileIfNeeded(object)
     LightFmModelCache.save(model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map, cluster_id)
 
 class AddPostAction(Resource):
