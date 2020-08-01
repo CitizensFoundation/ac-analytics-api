@@ -160,7 +160,7 @@ class RecommendationPrediction:
       print(after_date)
 
       for post in result_list:
-        if ('created_at' in post['_source']):
+        if (('created_at' in post['_source']) and (post["_source"]['created_at']!=None)):
           post_date = dateutil.parser.isoparse(post["_source"]['created_at'])
           if (post_date>after_date):
             final_list.append(post)
