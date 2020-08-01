@@ -319,7 +319,7 @@ def format_users_features(features):
     return uf
 
 def create_interactions_and_features(events_list, cluster_id):
-    print("create_interactions_and_features")
+    print("create_interactions_and_features", file=sys.stderr)
     interactions = {}
     users_features = {}
     posts_features = {}
@@ -392,9 +392,9 @@ def create_datasets(cluster_id):
 
     dataframe_interactions, dataframe_users_features, dataframe_item_features, user_tuple, item_tuple = create_interactions_and_features(events_list, cluster_id)
 
-    print(dataframe_interactions)
-    print(dataframe_users_features)
-    print(dataframe_item_features)
+    print(dataframe_interactions, cluster_id, file=sys.stderr)
+    print(dataframe_users_features, cluster_id, file=sys.stderr)
+    print(dataframe_item_features, cluster_id, file=sys.stderr)
 
     #print(user_tuple)
    # print(item_tuple)
@@ -431,12 +431,12 @@ def create_datasets(cluster_id):
 
 class RecTrainingManager:
     def train(self, cluster_id):
-        print("Start Time =", datetime.now().strftime("%H:%M:%S"))
+        print("Train Start Time =", datetime.now().strftime("%H:%M:%S"), cluster_id, file=sys.stderr)
 
         dataset, interactions, weights, item_features, user_features = create_datasets(cluster_id)
         user_id_map, user_feature_map, item_id_map, item_feature_map = dataset.mapping()
 
-        print("Before fit =", datetime.now().strftime("%H:%M:%S"))
+        print("Before fit =", datetime.now().strftime("%H:%M:%S"), cluster_id, file=sys.stderr)
 
         no_comp, lr, ep = 30, 0.01, 20
         model = LightFM(no_components=NUM_COMPONENTS, item_alpha=ITEM_ALPHA, loss='warp')
@@ -449,7 +449,7 @@ class RecTrainingManager:
             num_threads=NUM_THREADS,
             verbose=True)
 
-        print("After fit =", datetime.now().strftime("%H:%M:%S"))
+        print("After fit =", datetime.now().strftime("%H:%M:%S"), cluster_id, file=sys.stderr)
 
         return model, user_id_map, user_features, item_id_map, item_features, interactions, user_feature_map
 

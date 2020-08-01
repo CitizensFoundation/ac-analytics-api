@@ -95,7 +95,7 @@ class AddPostAction(Resource):
                 f.write("x")
                 f.close()
 
-                print("Added rec training trigger timer", REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC)
+                print("Added rec training trigger timer", REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC, file=sys.stderr)
                 AddPostAction.triggerTrainingTimer[cluster_id] = Timer(REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC,  self.addToTriggerQueue, [cluster_id, lockFilename])
                 AddPostAction.triggerTrainingTimer[cluster_id].start()
 
