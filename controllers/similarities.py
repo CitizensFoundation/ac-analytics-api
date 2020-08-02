@@ -61,7 +61,7 @@ POST_TRIGGER_DEBOUNCE_TIME_SEC=3*60
 ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=60
 
 es = Elasticsearch(es_url)
-queue = Queue(connection=conn)
+queue = Queue(connection=conn, default_timeout=600)
 
 def convertToNumbersWhereNeeded(inDict):
     outDict = {}

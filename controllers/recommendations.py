@@ -40,7 +40,7 @@ from elasticsearch import Elasticsearch, NotFoundError
 es_url = os.environ['AC_ANALYTICS_ES_URL'] if os.environ.get('AC_ANALYTICS_ES_URL')!=None else 'localhost:9200'
 
 es = Elasticsearch(es_url)
-queue = Queue(connection=conn)
+queue = Queue(connection=conn, default_timeout=600)
 
 REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC = 60*3
 
@@ -87,7 +87,8 @@ class AddPostAction(Resource):
         if AddPostAction.triggerTrainingTimer.get(cluster_id)==None:
             lockFilename = "/tmp/acaRqInQueueRecommendations_{}".format(cluster_id);
 
-            #TODO: Fix this, still sometimes running multiple paralell trainings
+            #TODO: Sometimes there are more than two trainings started at the same time so some subtle bug here
+            #TODO: Check also for date, if to old delete
             if path.exists(lockFilename):
                 print("Already in queue: "+lockFilename, file=sys.stderr)
             else:

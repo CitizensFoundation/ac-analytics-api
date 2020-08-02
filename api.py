@@ -64,7 +64,7 @@ CORS(app)
 api = Api(app)
 
 es = Elasticsearch(es_url)
-queue = Queue(connection=conn)
+queue = Queue(connection=conn, default_timeout=600)
 
 @app.before_request
 def before_request():
