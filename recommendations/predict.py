@@ -155,7 +155,7 @@ class RecommendationPrediction:
 
     final_list = []
 
-    if 'date_options' in self._user_data:
+    if ('date_options' in self._user_data) and self._user_data['date_options']!=None:
       after_date = dateutil.parser.isoparse(eval(self._user_data['date_options'])['after'])
       print(after_date)
 

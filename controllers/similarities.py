@@ -156,6 +156,7 @@ class GroupList(Resource):
 
         return json.dumps({"ok": True})
 
+#TODO: Make sure first to do toxicity check and language before triggering this as the group language might be wrong
 class PostList(Resource):
     triggerPostDomainQueueTimer = {}
     triggerPostCommunityQueueTimer = {}

@@ -433,6 +433,7 @@ class RecTrainingManager:
     def train(self, cluster_id):
         print("Train Start Time =", datetime.now().strftime("%H:%M:%S"), cluster_id, file=sys.stderr)
 
+        #TODO: Optimize dataset creation by using some sort of caching and partial updates
         dataset, interactions, weights, item_features, user_features = create_datasets(cluster_id)
         user_id_map, user_feature_map, item_id_map, item_feature_map = dataset.mapping()
 
