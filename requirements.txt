@@ -1,7 +1,7 @@
 user_agents==2.1
 lightfm==1.15
 pandas==1.0.5
-aiohttp==3.5.4
+aiohttp==3.7.4
 aniso8601==7.0.0
 asn1crypto==0.24.0
 async-timeout==3.0.1
