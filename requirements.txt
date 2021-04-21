@@ -136,7 +136,7 @@ termcc==2019.7.3
 terminado==0.8.2
 terminaltables==3.1.0
 testpath==0.4.2
-thinc==7.0.8
+thinc==7.4.1
 tokenizer==2.1.0
 tornado==6.0.3
 tqdm==4.33.0
