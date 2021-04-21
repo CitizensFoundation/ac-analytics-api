@@ -20,7 +20,7 @@ cffi==1.13.0
 chardet==3.0.4
 Click==7.0
 colorclass==2.2.0
-cryptography==2.1.4
+cryptography==3.2
 cymem==2.0.2
 decorator==4.4.0
 defusedxml==0.6.0
