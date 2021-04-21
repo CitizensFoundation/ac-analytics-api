@@ -139,7 +139,7 @@ testpath==0.4.2
 thinc==7.4.1
 tokenizer==2.1.0
 tornado==6.0.3
-tqdm==4.33.0
+tqdm==4.38.0
 traitlets==4.3.2
 typing-extensions==3.7.4
 #ubuntu-drivers-common==0.0.0
