@@ -156,4 +156,4 @@ Werkzeug==0.15.5
 widgetsnbextension==3.5.1
 #xkit==0.0.0
 yarl==1.3.0
-zope.interface==4.3.2
+zope.interface==4.7.2
