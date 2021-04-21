@@ -2,7 +2,10 @@ import os
 import pickle
 
 def def_get_common_filename(cluster_id, extension, temp):
-    filename = "rec_models/lightFMCluster"+str(cluster_id)+"."+extension
+    prefix_path = ""
+    if "AC_ANALYTICS_REC_MODEL_PREFIX_PATH" in os.environ:
+      prefix_path = os.getenv('AC_ANALYTICS_REC_MODEL_PREFIX_PATH')
+    filename = f"{prefix_path}rec_models/lightFMCluster"+str(cluster_id)+"."+extension
     if temp:
         filename += ".tmp"
     return filename
