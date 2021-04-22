@@ -132,4 +132,7 @@ api.add_resource(GetGroupRecommendations, api_url+'/recommendations/group/<clust
 # Anonymized export APIs
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0')
+    host = '0.0.0.0'
+    if "AC_ANALYTICS_API_BIND_HOSTNAME" in os.environ:
+      host = os.getenv('AC_ANALYTICS_API_BIND_HOSTNAME')
+    app.run(host=host)
