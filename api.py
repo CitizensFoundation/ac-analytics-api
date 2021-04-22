@@ -93,6 +93,12 @@ if (len(sys.argv)>1):
            es.indices.delete("similarityweights")
         print("HAVE DELETED ALL ES INDICES")
 
+
+class Healthcheck(Resource):
+    def get(self):
+       # TODO: Do some checking
+       print("Healthcheck")
+
 # Similarities APIs
 api.add_resource(PostList, api_url+'/posts/<cluster_id>/<post_id>')
 api.add_resource(PointList, api_url+'/points/<cluster_id>/<point_id>')
@@ -128,6 +134,7 @@ api.add_resource(GetDomainRecommendations, api_url+'/recommendations/domain/<clu
 api.add_resource(GetCommunityRecommendations, api_url+'/recommendations/community/<cluster_id>/<community_id>/<user_id>')
 api.add_resource(GetGroupRecommendations, api_url+'/recommendations/group/<cluster_id>/<group_id>/<user_id>')
 
+api.add_resource(Healthcheck, api_url+'/healthcheck')
 
 # Anonymized export APIs
 
