@@ -1,4 +1,4 @@
-Copyright (C) 2019-2020 Íbúar ses / Citizens Foundation Iceland / Citizens Foundation America
+Copyright (C) 2019-2021 Íbúar ses / Citizens Foundation Iceland / Citizens Foundation America
 Authors  Robert Bjarnason & Atli Jasonarson
 
 Start service
