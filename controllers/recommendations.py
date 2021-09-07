@@ -40,7 +40,7 @@ from elasticsearch import Elasticsearch, NotFoundError
 es_url = os.environ['AC_ANALYTICS_ES_URL'] if os.environ.get('AC_ANALYTICS_ES_URL')!=None else 'localhost:9200'
 
 es = Elasticsearch(es_url)
-queue = Queue(connection=conn, default_timeout=600)
+queue = Queue(connection=conn, default_timeout=6000)
 
 REC_TRAINING_TRIGGER_DEBOUNCE_TIME_SEC = 60*3
 
@@ -67,7 +67,7 @@ class AddPostAction(Resource):
             func=start_recommendation_training, args=("rec_training", {
                 "cluster_id": cluster_id,
                 "lockFilename": lockFilename
-                }), result_ttl=1*60*60*1000, timeout=600)
+                }), result_ttl=1*60*60*1000, timeout=6000)
 
         AddPostAction.triggerTrainingTimer[cluster_id]=None;
 

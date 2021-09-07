@@ -61,7 +61,7 @@ POST_TRIGGER_DEBOUNCE_TIME_SEC=3*60
 ARTICLES_TRIGGER_DEBOUNCE_TIME_SEC=60
 
 es = Elasticsearch(es_url)
-queue = Queue(connection=conn, default_timeout=600)
+queue = Queue(connection=conn, default_timeout=6000)
 
 def convertToNumbersWhereNeeded(inDict):
     outDict = {}
@@ -415,7 +415,7 @@ class TriggerDomainPostTraining(Resource):
                 "domain_id": domain_id,
                 "community_id": None,
                 "group_id": None,
-                }), result_ttl=1*60*60*1000, timeout=600)
+                }), result_ttl=1*60*60*1000, timeout=6000)
 
 class TriggerCommunityPostTraining(Resource):
     def put(self, cluster_id, community_id):
@@ -425,7 +425,7 @@ class TriggerCommunityPostTraining(Resource):
                 "domain_id": None,
                 "community_id": community_id,
                 "group_id": None,
-                }), result_ttl=1*60*60*1000, timeout=600)
+                }), result_ttl=1*60*60*1000, timeout=6000)
 
 class TriggerGroupPostTraining(Resource):
     def put(self, cluster_id, group_id):
@@ -435,7 +435,7 @@ class TriggerGroupPostTraining(Resource):
                 "domain_id": None,
                 "community_id": None,
                 "group_id": group_id,
-                }), result_ttl=1*60*60*1000, timeout=600)
+                }), result_ttl=1*60*60*1000, timeout=6000)
 
 class TriggerPostPointsTraining(Resource):
     def put(self, cluster_id, post_id):
@@ -446,4 +446,4 @@ class TriggerPostPointsTraining(Resource):
                 "community_id": None,
                 "group_id": None,
                 "post_id": post_id
-                }), result_ttl=1*60*60*1000, timeout=600)
+                }), result_ttl=1*60*60*1000, timeout=6000)
