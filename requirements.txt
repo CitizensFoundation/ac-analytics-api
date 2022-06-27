@@ -113,7 +113,7 @@ pyzmq==18.1.0
 qtconsole==4.5.2
 redis==3.3.6
 regex==2019.6.8
-reportlab==3.4.0
+reportlab==3.5.55
 requests==2.22.0
 requests-unixsocket==0.1.5
 reynir==2.5.0
